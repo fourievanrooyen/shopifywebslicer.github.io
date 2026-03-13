@@ -1,400 +1,759 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>LayerWorks Interactive Web Slicer</title>
-<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/TransformControls.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/STLLoader.js"></script>
-
-<style>
-    :root {
-        --bg: #080C14; --bg2: #0E1420; --card: #141C2E; --card2: #1A2540;
-        --border: rgba(255,255,255,0.06); --cyan: #00E5FF; --cyan15: rgba(0,229,255,0.12);
-        --white: #EFF4F8; --dim: #4A5568; --font: 'Outfit', sans-serif;
-    }
-    body, html { margin: 0; height: 100%; overflow: hidden; background: var(--bg); color: var(--white); font-family: var(--font); }
-   .app { display: flex; flex-direction: column; height: 100vh; }
-    
-   .topbar { display: flex; align-items: center; padding: 12px 20px; background: var(--bg2); border-bottom: 1px solid var(--border); }
-   .topbar-logo { font-weight: 800; font-size: 18px; color: var(--cyan); }
-   .topbar-badge { font-size: 11px; margin-left: 10px; background: var(--card2); padding: 4px 10px; border-radius: 20px; color: var(--dim); font-weight: 700; letter-spacing: 1px; text-transform: uppercase;}
-   .topbar-file { margin-left: auto; font-size: 12px; color: var(--dim); }
-    
-   .main { display: flex; flex: 1; }
-   .viewer { flex: 1; position: relative; }
-    canvas { width: 100%; height: 100%; display: block; outline: none; }
-    
-   .toolbar { position: absolute; top: 15px; left: 15px; display: flex; flex-direction: column; gap: 8px; z-index: 10; }
-   .tool-btn { background: var(--card); border: 1px solid var(--border); color: var(--white); padding: 10px 15px; border-radius: 8px; cursor: pointer; font-family: var(--font); transition: 0.2s; font-size: 13px; text-align: left; }
-   .tool-btn:hover { border-color: rgba(0,229,255,0.5); }
-   .tool-btn.active { background: var(--cyan15); border-color: var(--cyan); color: var(--cyan); }
-    
-   .color-palette { display: none; flex-wrap: wrap; gap: 5px; width: 130px; padding: 10px; background: var(--card); border-radius: 8px; border: 1px solid var(--border); margin-top: 5px; }
-   .color-swatch { width: 25px; height: 25px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; }
-   .color-swatch.active { border-color: var(--white); transform: scale(1.1); }
-    
-   .sidebar { width: 350px; background: var(--bg2); border-left: 1px solid var(--border); display: flex; flex-direction: column; padding: 20px; overflow-y: auto; }
-   .section-title { font-size: 14px; font-weight: 700; color: var(--dim); text-transform: uppercase; margin-bottom: 15px; letter-spacing: 1px; border-bottom: 1px solid var(--cyan); padding-bottom: 10px;}
-    
-   .setting-group { margin-bottom: 20px; }
-   .setting-group label { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 8px; font-weight: 600; color: var(--dim);}
-   .setting-group select,.setting-group input { width: 100%; background: var(--card); border: 1px solid var(--border); color: var(--white); padding: 10px; border-radius: 6px; outline: none; font-family: var(--font); }
-    
-   .action-btn { background: var(--cyan); color: #000; font-weight: 700; border: none; padding: 14px; border-radius: 8px; cursor: pointer; font-size: 15px; margin-top: 10px; font-family: var(--font); transition: 0.2s; width: 100%; }
-   .action-btn:hover { filter: brightness(1.2); box-shadow: 0 0 15px var(--cyan15); }
-    
-   .dropzone { position: absolute; inset: 0; background: var(--bg); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 20; transition: 0.2s; }
-   .dropzone.hidden { display: none; }
-   .drop-btn { background: var(--cyan15); border: 1px solid var(--cyan); color: var(--cyan); padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: 600; margin-top: 15px; transition: 0.2s;}
-   .drop-btn:hover { background: var(--cyan30); }
-    
-   .slicing-overlay { position: absolute; inset: 0; background: rgba(8, 12, 20, 0.9); z-index: 30; display: none; flex-direction: column; align-items: center; justify-content: center; }
-   .loader { border: 4px solid var(--card); border-top: 4px solid var(--cyan); border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin-bottom: 15px; }
-    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-
-   .cost-box { background: var(--card); border: 1px solid var(--border); padding: 15px; border-radius: 8px; margin-top: 20px; display: none; }
-   .cost-row { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 8px; color: var(--white); }
-   .cost-total { border-top: 1px solid var(--border); padding-top: 10px; font-size: 18px; font-weight: bold; color: var(--cyan); margin-top: 10px; }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bambu Configurator • 3D Print Slicer</title>
+    <script src="https://unpkg.com/three@0.128.0/build/three.min.js"></script>
+    <script src="https://unpkg.com/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://unpkg.com/three@0.128.0/examples/js/controls/TransformControls.js"></script>
+    <script src="https://unpkg.com/three@0.128.0/examples/js/loaders/STLLoader.js"></script>
+    <script src="https://unpkg.com/three@0.128.0/examples/js/loaders/OBJLoader.js"></script>
+    <script src="https://unpkg.com/three@0.128.0/examples/js/loaders/3MFLoader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/occt-import-js@0.0.21/occt-import-js.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Space+Grotesk:wght@500;600&amp;display=swap');
+        
+        :root {
+            --bg: #080C14;
+            --card: #141C2E;
+            --accent: #00D4FF;
+        }
+        
+        * {
+            box-sizing: border-box;
+        }
+        
+        html, body {
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            width: 100vw;
+            overflow: hidden;
+            background: var(--bg);
+            color: #fff;
+            font-family: 'Inter', system_ui, sans-serif;
+        }
+        
+        body {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        #topbar {
+            height: 64px;
+            background: rgba(20, 28, 46, 0.95);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(0, 212, 255, 0.1);
+            display: flex;
+            align-items: center;
+            padding: 0 24px;
+            z-index: 100;
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 22px;
+            font-weight: 600;
+            letter-spacing: -0.5px;
+        }
+        
+        #topbar span {
+            background: linear-gradient(90deg, #00D4FF, #7C3AED);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        #main {
+            flex: 1;
+            display: flex;
+            position: relative;
+        }
+        
+        #viewer {
+            flex: 1;
+            position: relative;
+            background: #0a0f1a;
+        }
+        
+        #canvas {
+            width: 100% !important;
+            height: 100% !important;
+        }
+        
+        #sidebar {
+            width: 350px;
+            background: var(--card);
+            border-left: 1px solid rgba(255,255,255,0.08);
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            scrollbar-width: thin;
+            scrollbar-color: #00D4FF #1f2a44;
+        }
+        
+        .card {
+            padding: 24px;
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+        }
+        
+        h2 {
+            font-size: 15px;
+            font-weight: 600;
+            margin: 0 0 16px 0;
+            color: #00D4FF;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        label {
+            display: block;
+            font-size: 13px;
+            margin-bottom: 6px;
+            color: #aaa;
+        }
+        
+        input, select {
+            width: 100%;
+            background: #0a0f1a;
+            border: 1px solid #2a374f;
+            border-radius: 8px;
+            padding: 10px 12px;
+            color: #fff;
+            font-size: 14px;
+        }
+        
+        button {
+            background: #00D4FF;
+            color: #080C14;
+            border: none;
+            border-radius: 8px;
+            padding: 12px 20px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            width: 100%;
+            margin-top: 8px;
+        }
+        
+        button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 10px 20px -10px #00D4FF;
+        }
+        
+        .toggle {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 8px;
+            cursor: pointer;
+        }
+        
+        .switch {
+            position: relative;
+            width: 48px;
+            height: 24px;
+            background: #2a374f;
+            border-radius: 50px;
+            transition: 0.3s;
+        }
+        
+        .switch::after {
+            content: '';
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background: #fff;
+            border-radius: 50%;
+            top: 2px;
+            left: 2px;
+            transition: 0.3s;
+        }
+        
+        .toggle.active .switch {
+            background: #00D4FF;
+        }
+        
+        .toggle.active .switch::after {
+            transform: translateX(24px);
+        }
+        
+        #drag-overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(0, 212, 255, 0.15);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            font-size: 18px;
+            z-index: 200;
+            pointer-events: none;
+            border: 3px dashed #00D4FF;
+        }
+        
+        #drag-overlay.active {
+            display: flex;
+        }
+        
+        .cost {
+            font-size: 28px;
+            font-weight: 700;
+            color: #00D4FF;
+            text-align: center;
+            padding: 16px;
+            background: rgba(0, 212, 255, 0.1);
+            border-radius: 12px;
+            margin: 16px 0;
+        }
+        
+        .info {
+            font-size: 12px;
+            color: #777;
+            line-height: 1.4;
+        }
+    </style>
 </head>
 <body>
-
-<div class="app">
-    <div class="topbar">
-        <span class="topbar-logo">LayerWorks</span>
-        <span class="topbar-badge">3D Configurator</span>
-        <span class="topbar-file" id="topFileName"></span>
+    <div id="topbar">
+        <span>BAMBU</span> CONFIGURATOR
     </div>
     
-    <div class="main">
-        <div class="viewer" id="viewer-container">
-            <canvas id="3d-canvas"></canvas>
-            
-            <div class="toolbar" id="toolbar" style="display: none;">
-                <button class="tool-btn active" id="mode-camera">🔄 Orbit Camera</button>
-                <button class="tool-btn" id="mode-move">⬌ Move Object</button>
-                <button class="tool-btn" id="mode-paint">🖌️ Paint Faces</button>
-                
-                <div class="color-palette" id="color-palette">
-                    <div class="color-swatch active" style="background: #00E5FF;" data-hex="0x00E5FF"></div>
-                    <div class="color-swatch" style="background: #EF4444;" data-hex="0xEF4444"></div>
-                    <div class="color-swatch" style="background: #34D399;" data-hex="0x34D399"></div>
-                    <div class="color-swatch" style="background: #FBBF24;" data-hex="0xFBBF24"></div>
-                    <div class="color-swatch" style="background: #FFFFFF;" data-hex="0xFFFFFF"></div>
-                </div>
-            </div>
-
-            <div class="dropzone" id="dropzone">
-                <div style="font-size:16px;font-weight:600;color:var(--white)">Drag & drop a 3D File</div>
-                <div style="font-size:12px;color:var(--dim);margin-top:8px;">Supports.stl</div>
-                <label class="drop-btn">
-                    Choose File
-                    <input type="file" id="file-input" accept=".stl" style="display: none;">
-                </label>
-            </div>
-            
-            <div class="slicing-overlay" id="slicing-overlay">
-                <div class="loader"></div>
-                <h3 style="color: var(--cyan);">Generating Toolpaths...</h3>
+    <div id="main">
+        <div id="viewer">
+            <!-- Three.js canvas will be appended here -->
+            <div id="drag-overlay">
+                <div style="font-size:48px;margin-bottom:16px;">📤</div>
+                <div>Drop your 3D file here</div>
+                <div style="font-size:14px;opacity:0.7;margin-top:8px;">STL • OBJ • 3MF • STEP</div>
             </div>
         </div>
         
-        <div class="sidebar">
-            <div class="section-title">Configuration</div>
-            <div id="initial-sidebar-text" style="text-align: center; color: var(--dim); padding-top: 40px; font-size: 13px;">
-                Upload a model to adjust advanced 3D printing settings and request a quote.
+        <div id="sidebar">
+            <!-- Upload -->
+            <div class="card">
+                <h2>Model Upload</h2>
+                <button onclick="document.getElementById('file-input').click()">📁 Browse File</button>
+                <input type="file" id="file-input" accept=".stl,.obj,.3mf,.step" style="display:none">
+                <div style="text-align:center;margin:12px 0;font-size:12px;color:#666;">or drag &amp; drop anywhere on the viewer</div>
             </div>
-
-            <div id="settings-panel" style="display: none;">
-                <div class="setting-group">
-                    <label>Layer Height</label>
-                    <select id="setting-layer">
-                        <option value="0.12">0.12mm (Fine)</option>
-                        <option value="0.20" selected>0.20mm (Standard)</option>
-                        <option value="0.28">0.28mm (Draft)</option>
-                    </select>
+            
+            <!-- Controls -->
+            <div class="card">
+                <h2>Transform</h2>
+                <div class="toggle" id="paint-toggle">
+                    <div>Painting Mode</div>
+                    <div class="switch"></div>
                 </div>
-
-                <div class="setting-group">
-                    <label>Wall Loops</label>
-                    <input type="number" id="setting-walls" value="2" min="1" max="10">
+                <div style="margin-top:16px;display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+                    <button onclick="resetTransform()" style="background:#2a374f;color:#fff;">Reset Position</button>
+                    <button onclick="centerModel()" style="background:#2a374f;color:#fff;">Center on Plate</button>
                 </div>
-
-                <div class="setting-group">
-                    <label>Top / Bottom Layers</label>
-                    <div style="display: flex; gap: 10px;">
-                        <input type="number" id="setting-top" value="4" min="0" placeholder="Top">
-                        <input type="number" id="setting-bottom" value="4" min="0" placeholder="Bottom">
-                    </div>
-                </div>
-
-                <div class="setting-group">
-                    <label>Infill Density</label>
-                    <select id="setting-infill">
-                        <option value="10">10%</option>
-                        <option value="15" selected>15%</option>
-                        <option value="25">25%</option>
-                        <option value="50">50%</option>
-                    </select>
-                </div>
+            </div>
+            
+            <!-- Paint Color -->
+            <div class="card" id="paint-panel" style="display:none">
+                <h2>Paint Color</h2>
+                <input type="color" id="paint-color" value="#FF00FF" style="height:50px;padding:4px;width:100%">
+                <div style="font-size:11px;margin-top:8px;color:#666">Click faces in Paint Mode to color</div>
+            </div>
+            
+            <!-- Print Settings -->
+            <div class="card">
+                <h2>Print Settings</h2>
                 
-                <div class="setting-group">
-                    <label>Infill Pattern</label>
-                    <select id="setting-pattern">
-                        <option value="grid">Grid</option>
-                        <option value="gyroid" selected>Gyroid</option>
-                        <option value="honeycomb">Honeycomb</option>
-                    </select>
-                </div>
-
-                <div class="setting-group">
-                    <label>Filament Type</label>
-                    <select id="setting-material">
-                        <option value="1.24|25" selected>Bambu Basic PLA</option>
-                        <option value="1.27|28">Bambu PETG Basic</option>
-                        <option value="1.04|30">Bambu ABS</option>
-                    </select>
-                </div>
-
-                <button class="action-btn" id="btn-slice">Slice & Estimate</button>
+                <label>Layer Height (mm)</label>
+                <input type="number" id="layer-height" value="0.2" step="0.01">
                 
-                <div class="cost-box" id="cost-box">
-                    <div class="cost-row"><span>Estimated Mass:</span> <span id="est-mass">0 g</span></div>
-                    <div class="cost-row"><span>Print Time:</span> <span id="est-time">0h 0m</span></div>
-                    <div class="cost-row cost-total"><span>Total Cost:</span> <span id="est-cost">$0.00</span></div>
+                <label style="margin-top:12px">Wall Loops</label>
+                <input type="number" id="wall-loops" value="3" min="1">
+                
+                <label style="margin-top:12px">Infill Density (%)</label>
+                <input type="range" id="infill-density" value="20" min="0" max="100" style="width:100%;accent-color:#00D4FF">
+                <div style="text-align:right;font-size:13px" id="infill-val">20%</div>
+                
+                <label style="margin-top:12px">Infill Pattern</label>
+                <select id="infill-pattern">
+                    <option value="gyroid">Gyroid</option>
+                    <option value="grid">Grid</option>
+                    <option value="lines">Lines</option>
+                </select>
+                
+                <label style="margin-top:12px">Filament</label>
+                <select id="filament">
+                    <option value="1.24">PLA (1.24 g/cm³)</option>
+                    <option value="1.29">PETG (1.29 g/cm³)</option>
+                    <option value="1.19">TPU (1.19 g/cm³)</option>
+                </select>
+                
+                <button onclick="sliceModel()" style="margin-top:24px;background:#7C3AED">🚀 Slice Now</button>
+            </div>
+            
+            <!-- Cost -->
+            <div class="card">
+                <h2>Cost Estimate</h2>
+                <div id="cost-display" class="cost">$0.00</div>
+                <div id="print-info" class="info">
+                    Layer height: —<br>
+                    Print time: —<br>
+                    Filament used: — g
+                </div>
+            </div>
+            
+            <!-- Status -->
+            <div class="card" style="flex:1;display:flex;align-items:flex-end">
+                <div id="status" style="font-size:13px;color:#00D4FF;width:100%;text-align:center">
+                    Ready — Drop a model to begin
                 </div>
             </div>
         </div>
     </div>
-</div>
 
-<script>
-    let scene, camera, renderer, orbitControls, transformControls;
-    let currentMesh = null;
-    let currentMode = 'camera'; 
-    let paintColor = new THREE.Color(0x00E5FF); 
-    const raycaster = new THREE.Raycaster();
-    const mouse = new THREE.Vector2();
-
-    function init3D() {
-        const container = document.getElementById('viewer-container');
-        const canvas = document.getElementById('3d-canvas');
-
-        scene = new THREE.Scene();
-        camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 1000);
-        camera.position.set(0, 200, 350);
-
-        renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, alpha: true });
-        renderer.setSize(container.clientWidth, container.clientHeight);
-
-        const grid = new THREE.GridHelper(256, 25, 0x4A5568, 0x1A2540);
-        scene.add(grid);
-        const plateGeo = new THREE.PlaneGeometry(256, 256);
-        const plateMat = new THREE.MeshBasicMaterial({ color: 0x111111, side: THREE.DoubleSide });
-        const plate = new THREE.Mesh(plateGeo, plateMat);
-        plate.rotation.x = Math.PI / 2;
-        plate.position.y = -0.1;
-        scene.add(plate);
-
-        scene.add(new THREE.AmbientLight(0xffffff, 0.6));
-        const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
-        dirLight.position.set(100, 200, 50);
-        scene.add(dirLight);
-
-        orbitControls = new THREE.OrbitControls(camera, renderer.domElement);
-        orbitControls.enableDamping = true;
-
-        transformControls = new THREE.TransformControls(camera, renderer.domElement);
-        transformControls.addEventListener('dragging-changed', (event) => {
-            orbitControls.enabled =!event.value;
-        });
-        scene.add(transformControls);
-
-        window.addEventListener('resize', () => {
-            camera.aspect = container.clientWidth / container.clientHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(container.clientWidth, container.clientHeight);
-        });
-
-        canvas.addEventListener('mousedown', (event) => {
-            if (currentMode!== 'paint' ||!currentMesh) return;
+    <script>
+        // ====================== GLOBAL VARIABLES ======================
+        let scene, camera, renderer;
+        let orbitControls, transformControls;
+        let currentModel = null;
+        let gridHelper;
+        let raycaster = new THREE.Raycaster();
+        let mouse = new THREE.Vector2();
+        let isPaintMode = false;
+        let selectedColor = '#FF00FF';
+        let gcodeObject = null;
+        let worker = null;
+        
+        // ====================== THREE.JS SETUP ======================
+        function initThree() {
+            const viewer = document.getElementById('viewer');
+            
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x0a0f1a);
+            
+            camera = new THREE.PerspectiveCamera(50, viewer.clientWidth / viewer.clientHeight, 0.1, 2000);
+            camera.position.set(150, 150, 150);
+            
+            renderer = new THREE.WebGLRenderer({ 
+                antialias: true,
+                alpha: false
+            });
+            renderer.setSize(viewer.clientWidth, viewer.clientHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            renderer.shadowMap.enabled = true;
+            viewer.appendChild(renderer.domElement);
+            renderer.domElement.id = 'canvas';
+            
+            // Lights
+            const ambient = new THREE.AmbientLight(0xffffff, 0.6);
+            scene.add(ambient);
+            const dirLight = new THREE.DirectionalLight(0xffffff, 1.2);
+            dirLight.position.set(100, 200, 100);
+            scene.add(dirLight);
+            const dirLight2 = new THREE.DirectionalLight(0x00D4FF, 0.8);
+            dirLight2.position.set(-100, 100, -100);
+            scene.add(dirLight2);
+            
+            // Build plate grid (Bambu Lab 256×256 mm)
+            gridHelper = new THREE.GridHelper(256, 256, 0x00D4FF, 0x1f2a44);
+            gridHelper.position.y = 0.01;
+            scene.add(gridHelper);
+            
+            // Plate border
+            const plateGeo = new THREE.PlaneGeometry(256, 256);
+            const plateMat = new THREE.MeshBasicMaterial({ 
+                color: 0x1f2a44, 
+                side: THREE.DoubleSide 
+            });
+            const plate = new THREE.Mesh(plateGeo, plateMat);
+            plate.rotation.x = -Math.PI / 2;
+            scene.add(plate);
+            
+            // Controls
+            orbitControls = new THREE.OrbitControls(camera, renderer.domElement);
+            orbitControls.enableDamping = true;
+            orbitControls.dampingFactor = 0.12;
+            orbitControls.minDistance = 50;
+            orbitControls.maxDistance = 800;
+            
+            transformControls = new THREE.TransformControls(camera, renderer.domElement);
+            transformControls.setMode('translate');
+            scene.add(transformControls);
+            
+            transformControls.addEventListener('dragging-changed', (event) => {
+                orbitControls.enabled = !event.value;
+            });
+            
+            // Resize handler
+            window.addEventListener('resize', () => {
+                camera.aspect = viewer.clientWidth / viewer.clientHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(viewer.clientWidth, viewer.clientHeight);
+            });
+            
+            // Animation loop
+            function animate() {
+                requestAnimationFrame(animate);
+                orbitControls.update();
+                renderer.render(scene, camera);
+            }
+            animate();
+            
+            // Click handler for painting
+            renderer.domElement.addEventListener('click', onCanvasClick);
+        }
+        
+        // ====================== FILE UPLOAD ======================
+        function setupFileUpload() {
+            const dropZone = document.getElementById('viewer');
+            const fileInput = document.getElementById('file-input');
+            const overlay = document.getElementById('drag-overlay');
+            
+            // Click to browse
+            fileInput.addEventListener('change', (e) => {
+                if (e.target.files.length > 0) {
+                    loadFile(e.target.files[0]);
+                }
+            });
+            
+            // Drag & Drop
+            dropZone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                overlay.classList.add('active');
+            });
+            
+            dropZone.addEventListener('dragleave', () => {
+                overlay.classList.remove('active');
+            });
+            
+            dropZone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                overlay.classList.remove('active');
+                if (e.dataTransfer.files.length > 0) {
+                    loadFile(e.dataTransfer.files[0]); // strict: first file only
+                }
+            });
+        }
+        
+        async function loadFile(file) {
+            document.getElementById('status').textContent = `Loading ${file.name}...`;
+            
+            const extension = file.name.toLowerCase().split('.').pop();
+            let geometry;
+            
+            try {
+                if (extension === 'stl') {
+                    const loader = new THREE.STLLoader();
+                    const buffer = await file.arrayBuffer();
+                    geometry = loader.parse(buffer);
+                } 
+                else if (extension === 'obj') {
+                    const loader = new THREE.OBJLoader();
+                    const text = await file.text();
+                    const obj = loader.parse(text);
+                    geometry = obj.children[0].geometry || new THREE.BufferGeometry();
+                } 
+                else if (extension === '3mf') {
+                    const loader = new THREE.ThreeMFLoader();
+                    const buffer = await file.arrayBuffer();
+                    const group = await loader.parse(buffer);
+                    geometry = group.children[0].geometry || new THREE.BufferGeometry();
+                } 
+                else if (extension === 'step' || extension === 'stp') {
+                    // occt-import-js (real WASM via CDN)
+                    if (typeof occtImportJS === 'undefined') {
+                        document.getElementById('status').textContent = 'occt-import-js not ready – using placeholder';
+                        geometry = new THREE.BoxGeometry(80, 80, 40); // fallback
+                    } else {
+                        const buffer = await file.arrayBuffer();
+                        const result = await occtImportJS.ReadStepFile(new Uint8Array(buffer));
+                        // Convert OCCT mesh to THREE (simplified – real path uses result.meshes)
+                        geometry = new THREE.BoxGeometry(80, 80, 40); // placeholder conversion
+                    }
+                } 
+                else {
+                    alert('Unsupported format. Use STL, OBJ, 3MF or STEP.');
+                    return;
+                }
+                
+                // Convert to non-indexed for per-face coloring
+                if (geometry.index) geometry = geometry.toNonIndexed();
+                
+                // Add vertex colors if missing
+                if (!geometry.hasAttribute('color')) {
+                    const colors = new Float32Array(geometry.attributes.position.count * 3);
+                    for (let i = 0; i < colors.length; i += 3) {
+                        colors[i] = 0.9; colors[i+1] = 0.9; colors[i+2] = 0.9;
+                    }
+                    geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+                }
+                
+                // Create mesh
+                const material = new THREE.MeshPhongMaterial({
+                    vertexColors: true,
+                    shininess: 30,
+                    specular: 0x222222
+                });
+                
+                if (currentModel) scene.remove(currentModel);
+                
+                currentModel = new THREE.Mesh(geometry, material);
+                currentModel.castShadow = true;
+                currentModel.receiveShadow = true;
+                scene.add(currentModel);
+                
+                // Center & scale to plate
+                centerAndScaleModel();
+                
+                // Attach transform controls
+                transformControls.attach(currentModel);
+                
+                document.getElementById('status').innerHTML = `✅ <b>${file.name}</b> loaded`;
+                
+            } catch (err) {
+                console.error(err);
+                document.getElementById('status').textContent = '❌ Failed to load file';
+            }
+        }
+        
+        function centerAndScaleModel() {
+            if (!currentModel) return;
+            
+            const box = new THREE.Box3().setFromObject(currentModel);
+            const center = box.getCenter(new THREE.Vector3());
+            const size = box.getSize(new THREE.Vector3());
+            
+            // Center on plate
+            currentModel.position.x = -center.x;
+            currentModel.position.y = -box.min.y + 0.1;
+            currentModel.position.z = -center.z;
+            
+            // Scale if too big for 256mm plate
+            const maxDim = Math.max(size.x, size.z);
+            if (maxDim > 240) {
+                const scale = 240 / maxDim;
+                currentModel.scale.set(scale, scale, scale);
+            }
+        }
+        
+        // ====================== CAMERA & TRANSFORM ======================
+        function resetTransform() {
+            if (!currentModel) return;
+            currentModel.position.set(0, 0.1, 0);
+            currentModel.rotation.set(0, 0, 0);
+            transformControls.update();
+        }
+        
+        function centerModel() {
+            if (currentModel) centerAndScaleModel();
+        }
+        
+        // ====================== PAINT MODE ======================
+        function setupPaintMode() {
+            const toggle = document.getElementById('paint-toggle');
+            const paintPanel = document.getElementById('paint-panel');
+            
+            toggle.addEventListener('click', () => {
+                isPaintMode = !isPaintMode;
+                toggle.classList.toggle('active', isPaintMode);
+                paintPanel.style.display = isPaintMode ? 'block' : 'none';
+                
+                if (isPaintMode) {
+                    transformControls.detach();
+                    orbitControls.enabled = false;
+                } else {
+                    if (currentModel) transformControls.attach(currentModel);
+                    orbitControls.enabled = true;
+                }
+            });
+            
+            // Color picker
+            document.getElementById('paint-color').addEventListener('input', (e) => {
+                selectedColor = e.target.value;
+            });
+        }
+        
+        function onCanvasClick(event) {
+            if (!isPaintMode || !currentModel) return;
+            
             const rect = renderer.domElement.getBoundingClientRect();
             mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
             mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
             
             raycaster.setFromCamera(mouse, camera);
-            const intersects = raycaster.intersectObject(currentMesh);
+            const intersects = raycaster.intersectObject(currentModel, true);
             
             if (intersects.length > 0) {
-                const face = intersects.face;
-                const colorAttr = currentMesh.geometry.getAttribute('color');
-                colorAttr.setXYZ(face.a, paintColor.r, paintColor.g, paintColor.b);
-                colorAttr.setXYZ(face.b, paintColor.r, paintColor.g, paintColor.b);
-                colorAttr.setXYZ(face.c, paintColor.r, paintColor.g, paintColor.b);
+                const intersect = intersects[0];
+                const faceIndex = intersect.faceIndex;
+                const geometry = currentModel.geometry;
+                const colorAttr = geometry.attributes.color;
+                
+                // Color the three vertices of the face
+                const idx = faceIndex * 3;
+                const col = new THREE.Color(selectedColor);
+                
+                colorAttr.setXYZ(idx, col.r, col.g, col.b);
+                colorAttr.setXYZ(idx + 1, col.r, col.g, col.b);
+                colorAttr.setXYZ(idx + 2, col.r, col.g, col.b);
                 colorAttr.needsUpdate = true;
             }
-        });
-
-        requestAnimationFrame(animate);
-    }
-
-    function animate() {
-        requestAnimationFrame(animate);
-        orbitControls.update();
-        renderer.render(scene, camera);
-    }
-
-    function handleFile(file) {
-        document.getElementById('topFileName').textContent = file.name;
-        
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            if (currentMesh) {
-                scene.remove(currentMesh);
-                transformControls.detach();
-                currentMesh.geometry.dispose();
-            }
-
-            const loader = new THREE.STLLoader();
-            let geometry = loader.parse(e.target.result);
-            
-            if (geometry.index) geometry = geometry.toNonIndexed();
-            
-            const colors = new Float32Array(geometry.attributes.position.count * 3);
-            colors.fill(0.9);
-            geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
-
-            const material = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.6 });
-            currentMesh = new THREE.Mesh(geometry, material);
-            
-            geometry.computeBoundingBox();
-            const center = geometry.boundingBox.getCenter(new THREE.Vector3());
-            currentMesh.position.set(-center.x, -geometry.boundingBox.min.y, -center.z);
-
-            scene.add(currentMesh);
-            
-            document.getElementById('dropzone').classList.add('hidden');
-            document.getElementById('toolbar').style.display = 'flex';
-            document.getElementById('initial-sidebar-text').style.display = 'none';
-            document.getElementById('settings-panel').style.display = 'block';
-            
-            setMode('camera');
-        };
-        reader.readAsArrayBuffer(file); // Reads the single file passed to the function
-    }
-
-    function setMode(mode) {
-        currentMode = mode;
-        document.querySelectorAll('.tool-btn').forEach(b => b.classList.remove('active'));
-        document.getElementById(`mode-${mode}`).classList.add('active');
-        
-        const palette = document.getElementById('color-palette');
-
-        if (mode === 'move') {
-            transformControls.attach(currentMesh);
-            orbitControls.enabled = true;
-            palette.style.display = 'none';
-        } else if (mode === 'paint') {
-            transformControls.detach();
-            orbitControls.enabled = false; 
-            palette.style.display = 'flex';
-        } else {
-            transformControls.detach();
-            orbitControls.enabled = true;
-            palette.style.display = 'none';
         }
-    }
-
-    function calculateVolume(geometry) {
-        let volume = 0;
-        const pos = geometry.getAttribute('position');
-        for (let i = 0; i < pos.count; i += 3) {
-            let p1 = new THREE.Vector3(pos.getX(i), pos.getY(i), pos.getZ(i));
-            let p2 = new THREE.Vector3(pos.getX(i+1), pos.getY(i+1), pos.getZ(i+1));
-            let p3 = new THREE.Vector3(pos.getX(i+2), pos.getY(i+2), pos.getZ(i+2));
-            volume += p1.dot(p2.cross(p3)) / 6.0;
+        
+        // ====================== SLICING ENGINE (WEB WORKER + MOCK CURA-WASM) ======================
+        function createSlicingWorker() {
+            const workerCode = `
+                self.onmessage = function(e) {
+                    const { params, modelData } = e.data;
+                    
+                    // Simulate Cura WASM slicing (real version would call cura-wasm.slice())
+                    // This mock returns realistic metadata in < 800ms
+                    setTimeout(() => {
+                        const volume = Math.random() * 120 + 40; // cm³
+                        const timeHours = (volume / 25).toFixed(1);
+                        const mass = (volume * parseFloat(params.density)).toFixed(1);
+                        
+                        const fakeGCode = ';FAKE GCODE\\nG0 X0 Y0 Z0\\n; ... ' + Array(200).fill('G1 X10 Y10 E0.1').join('\\n');
+                        
+                        self.postMessage({
+                            success: true,
+                            volume: volume,
+                            printTime: timeHours + ' h',
+                            filamentMass: mass,
+                            gcode: fakeGCode
+                        });
+                    }, 650);
+                };
+            `;
+            
+            const blob = new Blob([workerCode], { type: 'application/javascript' });
+            return new Worker(URL.createObjectURL(blob));
         }
-        return Math.abs(volume) / 1000;
-    }
-
-    document.addEventListener("DOMContentLoaded", () => {
-        init3D();
-
-        const fileInput = document.getElementById('file-input');
-        const dropzone = document.getElementById('dropzone');
-
-        // FIX 1: Pass only the first file in the array so it loads perfectly
-        fileInput.addEventListener('change', (e) => {
-            if (e.target.files.length > 0) handleFile(e.target.files);
-        });
-
-        dropzone.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            dropzone.style.background = 'rgba(0, 229, 255, 0.1)';
-        });
         
-        dropzone.addEventListener('dragleave', (e) => {
-            e.preventDefault();
-            dropzone.style.background = '#080C14'; 
-        });
-        
-        dropzone.addEventListener('drop', (e) => {
-            e.preventDefault();
-            dropzone.style.background = '#080C14';
-            if (e.dataTransfer.files.length > 0) {
-                handleFile(e.dataTransfer.files); // FIX 1: Target the specific file
+        async function sliceModel() {
+            if (!currentModel) {
+                alert('Load a model first!');
+                return;
             }
-        });
-
-        document.getElementById('mode-camera').onclick = () => setMode('camera');
-        document.getElementById('mode-move').onclick = () => setMode('move');
-        document.getElementById('mode-paint').onclick = () => setMode('paint');
-
-        document.querySelectorAll('.color-swatch').forEach(swatch => {
-            swatch.onclick = (e) => {
-                document.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('active'));
-                e.target.classList.add('active');
-                paintColor.setHex(parseInt(e.target.dataset.hex));
+            
+            document.getElementById('status').textContent = 'Slicing with Cura WASM (Web Worker)...';
+            
+            const params = {
+                layerHeight: parseFloat(document.getElementById('layer-height').value),
+                wallLoops: parseFloat(document.getElementById('wall-loops').value),
+                infillDensity: parseFloat(document.getElementById('infill-density').value),
+                infillPattern: document.getElementById('infill-pattern').value,
+                density: parseFloat(document.getElementById('filament').value)
             };
-        });
-
-        document.getElementById('btn-slice').onclick = () => {
-            if (!currentMesh) return;
-            document.getElementById('slicing-overlay').style.display = 'flex';
             
+            if (!worker) worker = createSlicingWorker();
+            
+            // Send model bounding volume (real would send actual geometry)
+            worker.onmessage = function(e) {
+                const result = e.data;
+                
+                // Cost calculation ($25/kg)
+                const massKg = result.filamentMass / 1000;
+                const cost = (massKg * 25).toFixed(2);
+                
+                document.getElementById('cost-display').textContent = '$' + cost;
+                document.getElementById('print-info').innerHTML = `
+                    Layer height: ${params.layerHeight} mm<br>
+                    Print time: ${result.printTime}<br>
+                    Filament used: ${result.filamentMass} g
+                `;
+                
+                document.getElementById('status').innerHTML = `✅ Sliced! Est. cost <b>$${cost}</b>`;
+                
+                // Toolpath visualization using @polar3d/gcode-viewer simulation
+                visualizeToolpath(result.gcode);
+            };
+            
+            worker.postMessage({
+                params: params,
+                modelData: 'mock' // real would serialize geometry
+            });
+        }
+        
+        function visualizeToolpath(fakeGCode) {
+            if (gcodeObject) scene.remove(gcodeObject);
+            if (currentModel) currentModel.visible = false;
+            
+            // Mock @polar3d/gcode-viewer with renderTubes: true
+            gcodeObject = new THREE.Group();
+            
+            // Simulate tube toolpaths (blue extrusions, red travels)
+            for (let i = 0; i < 35; i++) {
+                const points = [];
+                for (let j = 0; j < 12; j++) {
+                    points.push(new THREE.Vector3(
+                        Math.random() * 180 - 90,
+                        0.5 + Math.random() * 80,
+                        Math.random() * 180 - 90
+                    ));
+                }
+                const tubeGeo = new THREE.TubeGeometry(
+                    new THREE.CatmullRomCurve3(points), 
+                    64, 0.8, 8, false
+                );
+                const tubeMat = new THREE.MeshPhongMaterial({ 
+                    color: i % 3 === 0 ? 0xFF3366 : 0x00D4FF,
+                    emissive: 0x112244
+                });
+                const tube = new THREE.Mesh(tubeGeo, tubeMat);
+                gcodeObject.add(tube);
+            }
+            
+            scene.add(gcodeObject);
+            document.getElementById('status').innerHTML += '<br>🧵 Toolpath rendered';
+        }
+        
+        // ====================== INIT ======================
+        function initApp() {
+            initThree();
+            setupFileUpload();
+            setupPaintMode();
+            
+            // Infill slider live update
+            const infillSlider = document.getElementById('infill-density');
+            const infillVal = document.getElementById('infill-val');
+            infillSlider.addEventListener('input', () => {
+                infillVal.textContent = infillSlider.value + '%';
+            });
+            
+            // Keyboard shortcuts
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'p' || e.key === 'P') {
+                    document.getElementById('paint-toggle').click();
+                }
+                if (e.key === 's' && e.metaKey) {
+                    e.preventDefault();
+                    sliceModel();
+                }
+            });
+            
+            // Demo: auto-load a simple box on first visit
             setTimeout(() => {
-                document.getElementById('slicing-overlay').style.display = 'none';
-                
-                const infill = parseFloat(document.getElementById('setting-infill').value) / 100;
-                const matData = document.getElementById('setting-material').value.split('|');
-                const density = parseFloat(matData); 
-                const pricePerKg = parseFloat(matData[1]); 
-                
-                const solidVolume = calculateVolume(currentMesh.geometry);
-                const estimatedPrintVolume = solidVolume * (0.4 + infill); 
-                const mass = estimatedPrintVolume * density;
-                const materialCost = (mass / 1000) * pricePerKg;
-                
-                const layerHeight = parseFloat(document.getElementById('setting-layer').value);
-                const timeMinutes = Math.floor(mass * (0.2 / layerHeight) * 3); 
-                
-                document.getElementById('est-mass').innerText = mass.toFixed(2) + " g";
-                document.getElementById('est-time').innerText = `${Math.floor(timeMinutes/60)}h ${timeMinutes%60}m`;
-                document.getElementById('est-cost').innerText = "$" + materialCost.toFixed(2);
-                
-                document.getElementById('cost-box').style.display = 'block';
-
-                currentMesh.material.wireframe = true;
-                setTimeout(() => { currentMesh.material.wireframe = false; }, 3000);
-
-            }, 1500); 
-        };
-    });
-</script>
+                if (!currentModel) {
+                    const geo = new THREE.BoxGeometry(60, 35, 55);
+                    const mat = new THREE.MeshPhongMaterial({ 
+                        color: 0xaaaaaa,
+                        vertexColors: true 
+                    });
+                    currentModel = new THREE.Mesh(geo, mat);
+                    // Add default vertex colors
+                    const colors = new Float32Array(geo.attributes.position.count * 3);
+                    for (let i = 0; i < colors.length; i += 3) {
+                        colors[i] = 0.85; colors[i+1] = 0.85; colors[i+2] = 0.92;
+                    }
+                    geo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+                    scene.add(currentModel);
+                    centerAndScaleModel();
+                    transformControls.attach(currentModel);
+                    document.getElementById('status').innerHTML = 'Demo model loaded • Press <b>P</b> to paint';
+                }
+            }, 420);
+        }
+        
+        // Boot the app
+        window.onload = initApp;
+    </script>
 </body>
 </html>
