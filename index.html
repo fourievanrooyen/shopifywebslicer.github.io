@@ -2,34 +2,39 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta
-    name="viewport"
-    content="width=device-width, initial-scale=1.0, viewport-fit=cover"
-  />
-  <title>3D Print Configurator & Browser Slicer</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>LayerWorks Engineering — Product Quote Configurator</title>
 
-  <!-- OCCT STEP/IGES/BREP importer (loads global occtimportjs) -->
   <script src="https://cdn.jsdelivr.net/npm/occt-import-js@0.0.24/dist/occt-import-js.js"></script>
 
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+      "three/": "https://unpkg.com/three@0.160.0/"
+    }
+  }
+  </script>
+
   <style>
-    :root{
-      --bg:#080C14;
-      --bg2:#0E1420;
-      --card:#141C2E;
-      --card2:#1A2540;
-      --border:#24314f;
-      --text:#EAF0FF;
-      --muted:#9AA7C2;
-      --accent:#5DA8FF;
-      --accent2:#78C7FF;
-      --good:#1FD18A;
-      --warn:#FFC857;
-      --danger:#FF6B6B;
-      --input:#0D1526;
-      --shadow:0 12px 28px rgba(0,0,0,0.35);
-      --radius:18px;
-      --sidebar-width:350px;
-      --topbar-height:64px;
+    :root {
+      --bg: #080C14;
+      --bg2: #0E1420;
+      --card: #141C2E;
+      --card2: #1A2540;
+      --border: #24314f;
+      --text: #EAF0FF;
+      --muted: #9AA7C2;
+      --accent: #5DA8FF;
+      --accent2: #78C7FF;
+      --good: #1FD18A;
+      --warn: #FFC857;
+      --danger: #FF6B6B;
+      --input: #0D1526;
+      --shadow: 0 12px 28px rgba(0,0,0,0.35);
+      --radius: 18px;
+      --sidebar-width: 370px;
+      --topbar-height: 68px;
     }
 
     * { box-sizing: border-box; }
@@ -81,8 +86,8 @@
     }
 
     .brand-badge {
-      width: 36px;
-      height: 36px;
+      width: 38px;
+      height: 38px;
       border-radius: 12px;
       display: grid;
       place-items: center;
@@ -109,6 +114,8 @@
       display: flex;
       align-items: center;
       gap: 10px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
     }
 
     .pill {
@@ -171,7 +178,7 @@
     }
 
     .hud-card {
-      min-width: 180px;
+      min-width: 220px;
       pointer-events: auto;
       background: rgba(20,28,46,0.78);
       border: 1px solid rgba(255,255,255,0.06);
@@ -192,7 +199,7 @@
     .hud-value {
       font-size: 0.96rem;
       font-weight: 700;
-      line-height: 1.3;
+      line-height: 1.35;
     }
 
     .corner-tools {
@@ -203,6 +210,9 @@
       gap: 10px;
       z-index: 5;
       pointer-events: auto;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      max-width: 340px;
     }
 
     .btn, button {
@@ -236,6 +246,11 @@
     .btn.active {
       background: linear-gradient(180deg, #2368C4 0%, #124F9B 100%);
       border-color: rgba(120,199,255,0.7);
+    }
+
+    .btn.good {
+      background: linear-gradient(180deg, #23a867 0%, #178551 100%);
+      border-color: rgba(31,209,138,0.7);
     }
 
     .drop-overlay {
@@ -330,16 +345,27 @@
     }
 
     .field input,
-    .field select {
+    .field select,
+    .field textarea {
       width: 100%;
-      height: 42px;
       border-radius: 12px;
       border: 1px solid var(--border);
       background: var(--input);
       color: var(--text);
-      padding: 0 12px;
+      padding: 10px 12px;
       outline: none;
       font-size: 0.92rem;
+      font-family: inherit;
+    }
+
+    .field input,
+    .field select {
+      height: 42px;
+    }
+
+    .field textarea {
+      min-height: 88px;
+      resize: vertical;
     }
 
     .field input[type="color"] {
@@ -443,6 +469,8 @@
       font-size: 0.76rem;
       color: var(--muted);
       line-height: 1.5;
+      white-space: pre-wrap;
+      word-break: break-word;
     }
 
     .powered {
@@ -454,6 +482,47 @@
       color: var(--muted);
       font-size: 0.78rem;
       line-height: 1.45;
+    }
+
+    .quote-box {
+      background: linear-gradient(180deg, rgba(93,168,255,0.08), rgba(93,168,255,0.03));
+      border: 1px solid rgba(93,168,255,0.22);
+      border-radius: 16px;
+      padding: 14px;
+      margin-bottom: 12px;
+    }
+
+    .quote-box strong {
+      display: block;
+      margin-bottom: 6px;
+      font-size: 0.95rem;
+    }
+
+    .quote-box p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.84rem;
+      line-height: 1.45;
+    }
+
+    .test-panel {
+      margin-top: 10px;
+      padding: 10px 12px;
+      border-radius: 12px;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.05);
+    }
+
+    .test-panel ul {
+      margin: 8px 0 0;
+      padding-left: 16px;
+    }
+
+    .test-panel li {
+      color: var(--muted);
+      font-size: 0.78rem;
+      line-height: 1.5;
+      margin-bottom: 4px;
     }
 
     #polarBranding {
@@ -469,26 +538,26 @@
       display: none !important;
     }
 
-    @media (max-width: 1100px) {
+    @media (max-width: 1140px) {
       .sidebar {
-        width: 320px;
-        min-width: 320px;
-        max-width: 320px;
+        width: 340px;
+        min-width: 340px;
+        max-width: 340px;
       }
     }
 
-    @media (max-width: 920px) {
+    @media (max-width: 940px) {
       .main {
         flex-direction: column;
       }
       .viewer-pane {
-        min-height: 50vh;
+        min-height: 52vh;
       }
       .sidebar {
         width: 100%;
         min-width: 100%;
         max-width: 100%;
-        height: 50vh;
+        height: 48vh;
         border-left: none;
         border-top: 1px solid rgba(255,255,255,0.06);
       }
@@ -501,13 +570,14 @@
       <div class="brand">
         <div class="brand-badge">LW</div>
         <div class="brand-copy">
-          <span>3D Print Configurator</span>
-          <small>WebGL + WASM in-browser viewer, painter, slicer</small>
+          <span>LayerWorks Engineering</span>
+          <small>Interactive Product Quote Configurator</small>
         </div>
       </div>
 
       <div class="topbar-actions">
         <div class="pill" id="topStatus">No model loaded</div>
+        <div class="pill">Bambu-style 256 × 256 plate</div>
       </div>
     </div>
 
@@ -525,41 +595,72 @@
               <div class="hud-title">Interaction</div>
               <div class="hud-value" id="interactionModeLabel">Orbit Camera</div>
             </div>
+            <div class="hud-card">
+              <div class="hud-title">Store Quote Note</div>
+              <div class="hud-value" style="font-size:0.88rem; font-weight:600;">
+                Final pricing can vary based on part complexity, support needs, finish requirements, and uploaded reference files.
+              </div>
+            </div>
           </div>
 
           <div class="corner-tools">
             <button class="btn secondary" id="browseBtn" type="button">Upload Model</button>
             <button class="btn secondary" id="fitViewBtn" type="button">Fit View</button>
+            <button class="btn secondary" id="showMeshBtn" type="button">Show Mesh</button>
           </div>
         </div>
 
         <div id="dropOverlay" class="drop-overlay">
           <div class="drop-card">
-            <h2>Drop your 3D file here</h2>
+            <h2>Drop your 3D model here</h2>
             <p>
-              Supported formats: STL, OBJ, 3MF, STEP/STP.<br />
-              The model will be centered on the build plate automatically.
+              Supported formats: STL, OBJ, 3MF, STEP, STP.<br />
+              The part will be centered automatically on the virtual build plate.
             </p>
           </div>
         </div>
 
         <div id="polarBranding"></div>
 
-        <input
-          id="fileInput"
-          type="file"
-          accept=".stl,.obj,.3mf,.step,.stp"
-          class="hidden"
-        />
+        <input id="fileInput" type="file" accept=".stl,.obj,.3mf,.step,.stp" class="hidden" />
       </section>
 
       <aside class="sidebar">
         <div class="panel">
+          <h3>Quote Workflow</h3>
+          <div class="sub">Use this configurator to preview your file, estimate material use, and prepare a quote request for LayerWorks Engineering.</div>
+
+          <div class="quote-box">
+            <strong>Need a formal quote?</strong>
+            <p>
+              For final production pricing, custom colors, images, drawings, STL files, STEP files, and special instructions should be sent to
+              <span id="quoteEmailText">quotes@layerworksengineering.com</span>.
+            </p>
+          </div>
+
+          <div class="field">
+            <label for="quoteEmail">Quote Email Address</label>
+            <input id="quoteEmail" type="email" value="quotes@layerworksengineering.com" />
+            <small>This address is also used when generating the customer email template below.</small>
+          </div>
+
+          <div class="field">
+            <label for="customerName">Customer Name</label>
+            <input id="customerName" type="text" placeholder="Enter your name" />
+          </div>
+
+          <div class="field">
+            <label for="projectNotes">Project Notes</label>
+            <textarea id="projectNotes" placeholder="Describe the part, intended use, quantity needed, color preference, tolerance requirements, or finish requests."></textarea>
+          </div>
+        </div>
+
+        <div class="panel">
           <h3>Model Controls</h3>
-          <div class="sub">Load a mesh, manipulate it on the plate, or switch into direct face painting mode.</div>
+          <div class="sub">Move or rotate the part on the plate, or switch into direct triangle painting mode for color planning.</div>
 
           <div class="toolbar" style="margin-bottom:10px;">
-            <button class="btn" id="transformTranslateBtn" type="button">Translate</button>
+            <button class="btn active" id="transformTranslateBtn" type="button">Translate</button>
             <button class="btn secondary" id="transformRotateBtn" type="button">Rotate</button>
           </div>
 
@@ -571,11 +672,11 @@
           <div class="field">
             <label for="paintColor">Paint Color</label>
             <input id="paintColor" type="color" value="#ffffff" />
-            <small>When paint mode is active, clicking the mesh recolors the exact triangle you hit.</small>
+            <small>Click on the mesh while paint mode is enabled to recolor exact triangles on the non-indexed geometry.</small>
           </div>
 
           <div class="field">
-            <label for="resetPaintBtn">Paint Utilities</label>
+            <label>Utilities</label>
             <div class="toolbar">
               <button class="btn secondary" id="resetPaintBtn" type="button">Reset Colors</button>
               <button class="btn secondary" id="recenterBtn" type="button">Recenter Model</button>
@@ -585,7 +686,7 @@
 
         <div class="panel">
           <h3>Slicing Settings</h3>
-          <div class="sub">These values are mapped into Cura Engine settings and sliced in a Web Worker.</div>
+          <div class="sub">Defaults below are tuned for common Bambu-style FDM quoting. Slicing runs in-browser inside a worker.</div>
 
           <div class="row">
             <div class="field">
@@ -618,7 +719,7 @@
               <label for="infillPattern">Infill Pattern</label>
               <select id="infillPattern">
                 <option value="grid">Grid</option>
-                <option value="gyroid">Gyroid</option>
+                <option value="gyroid" selected>Gyroid</option>
                 <option value="lines">Lines</option>
                 <option value="triangles">Triangles</option>
                 <option value="cubic">Cubic</option>
@@ -636,13 +737,23 @@
             </select>
           </div>
 
-          <div class="field">
-            <label for="pricePerKg">Price per kg (USD)</label>
-            <input id="pricePerKg" type="number" step="0.01" min="0" value="24.99" />
+          <div class="row">
+            <div class="field">
+              <label for="pricePerKg">Price per kg (USD)</label>
+              <input id="pricePerKg" type="number" step="0.01" min="0" value="29.99" />
+            </div>
+            <div class="field">
+              <label for="machineProfile">Machine Profile</label>
+              <select id="machineProfile">
+                <option value="bambu-256" selected>Bambu-style 256 mm</option>
+                <option value="compact-220">Compact 220 mm</option>
+                <option value="large-300">Large 300 mm</option>
+              </select>
+            </div>
           </div>
 
           <div class="toolbar" style="margin-top:10px;">
-            <button class="btn" id="sliceBtn" type="button">Slice in Browser</button>
+            <button class="btn good" id="sliceBtn" type="button">Slice in Browser</button>
             <button class="btn secondary" id="toolpathBtn" type="button">Show Toolpath</button>
           </div>
 
@@ -655,13 +766,13 @@
           </div>
 
           <div class="powered">
-            Slicing uses Cura WASM inside a dedicated Web Worker so the main UI stays responsive. Toolpath rendering uses Polar3D G-code parsing/rendering.
+            Cura WASM runs in a dedicated worker to keep the configurator responsive. Toolpath rendering uses Polar3D with true 3D tubes enabled.
           </div>
         </div>
 
         <div class="panel">
-          <h3>Estimation</h3>
-          <div class="sub">Mass is computed from sliced extruded volume and selected material density. Cost uses the configured price per kilogram.</div>
+          <h3>Estimate</h3>
+          <div class="sub">Mass is based on extruded volume from the slice result and material density. Final quoting can still vary with supports, finishing, and quantity.</div>
 
           <div class="stats-grid">
             <div class="stat">
@@ -690,15 +801,30 @@
             </div>
           </div>
 
-          <div class="tiny" style="margin-top:12px;" id="metadataDebug">
-            No slice metadata yet.
+          <div class="tiny" style="margin-top:12px;" id="metadataDebug">No slice metadata yet.</div>
+        </div>
+
+        <div class="panel">
+          <h3>Customer Email Draft</h3>
+          <div class="sub">This generates a clean quote request email body for the customer to copy and send with their files, drawings, and images.</div>
+
+          <div class="field">
+            <label for="generatedEmail">Generated Message</label>
+            <textarea id="generatedEmail" readonly></textarea>
+          </div>
+
+          <div class="toolbar">
+            <button class="btn secondary" id="generateEmailBtn" type="button">Generate Email</button>
+            <button class="btn secondary" id="copyEmailBtn" type="button">Copy Email</button>
           </div>
         </div>
 
         <div class="panel">
-          <h3>Notes</h3>
-          <div class="tiny">
-            This file is designed as a single-page app for GitHub Pages and Shopify iframe embedding. STEP import is handled with OCCT WebAssembly, Cura slicing is workerized, and the loaded mesh is immediately converted to non-indexed geometry so per-face painting can update exact triangle colors.
+          <h3>Startup Checks</h3>
+          <div class="sub">Lightweight runtime assertions to catch missing DOM nodes and invalid machine profiles before deeper features run.</div>
+          <div class="test-panel">
+            <div class="tiny" id="testSummary">Tests not run yet.</div>
+            <ul id="testResults"></ul>
           </div>
         </div>
       </aside>
@@ -706,23 +832,20 @@
   </div>
 
   <script type="module">
-    import * as THREE from 'https://esm.sh/three@0.160.0';
-    import { OrbitControls } from 'https://esm.sh/three@0.160.0/examples/jsm/controls/OrbitControls.js';
-    import { TransformControls } from 'https://esm.sh/three@0.160.0/examples/jsm/controls/TransformControls.js';
-    import { STLLoader } from 'https://esm.sh/three@0.160.0/examples/jsm/loaders/STLLoader.js';
-    import { OBJLoader } from 'https://esm.sh/three@0.160.0/examples/jsm/loaders/OBJLoader.js';
-    import { ThreeMFLoader } from 'https://esm.sh/three@0.160.0/examples/jsm/loaders/3MFLoader.js';
-    import * as BufferGeometryUtils from 'https://esm.sh/three@0.160.0/examples/jsm/utils/BufferGeometryUtils.js';
-    import { GCodeViewer } from 'https://esm.sh/@polar3d/gcode-viewer?external=three';
+    import * as THREE from 'three';
+    import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
+    import { TransformControls } from 'three/examples/jsm/controls/TransformControls.js';
+    import { STLLoader } from 'three/examples/jsm/loaders/STLLoader.js';
+    import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader.js';
+    import { ThreeMFLoader } from 'three/examples/jsm/loaders/3MFLoader.js';
+    import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 
-    // -------------------------------------------------------------------------
-    // DOM
-    // -------------------------------------------------------------------------
     const viewerEl = document.getElementById('viewer');
     const viewerPaneEl = document.getElementById('viewerPane');
     const fileInputEl = document.getElementById('fileInput');
     const browseBtnEl = document.getElementById('browseBtn');
     const fitViewBtnEl = document.getElementById('fitViewBtn');
+    const showMeshBtnEl = document.getElementById('showMeshBtn');
     const dropOverlayEl = document.getElementById('dropOverlay');
     const loadedFilenameEl = document.getElementById('loadedFilename');
     const interactionModeLabelEl = document.getElementById('interactionModeLabel');
@@ -743,6 +866,7 @@
     const infillPatternEl = document.getElementById('infillPattern');
     const materialEl = document.getElementById('material');
     const pricePerKgEl = document.getElementById('pricePerKg');
+    const machineProfileEl = document.getElementById('machineProfile');
     const sliceBtnEl = document.getElementById('sliceBtn');
     const toolpathBtnEl = document.getElementById('toolpathBtn');
 
@@ -759,9 +883,82 @@
     const metadataDebugEl = document.getElementById('metadataDebug');
     const polarBrandingEl = document.getElementById('polarBranding');
 
-    // -------------------------------------------------------------------------
-    // Scene
-    // -------------------------------------------------------------------------
+    const quoteEmailEl = document.getElementById('quoteEmail');
+    const quoteEmailTextEl = document.getElementById('quoteEmailText');
+    const customerNameEl = document.getElementById('customerName');
+    const projectNotesEl = document.getElementById('projectNotes');
+    const generatedEmailEl = document.getElementById('generatedEmail');
+    const generateEmailBtnEl = document.getElementById('generateEmailBtn');
+    const copyEmailBtnEl = document.getElementById('copyEmailBtn');
+
+    const testSummaryEl = document.getElementById('testSummary');
+    const testResultsEl = document.getElementById('testResults');
+
+    function createFallbackGCodeObject(gcodeText) {
+      const group = new THREE.Group();
+      const segmentsByType = new Map();
+      let x = 0, y = 0, z = 0;
+      let e = 0;
+
+      const lines = String(gcodeText || '').split(/\r?\n/);
+      for (const rawLine of lines) {
+        const line = rawLine.split(';')[0].trim();
+        if (!line) continue;
+        if (!/^G0?1\b|^G1\b/i.test(line)) continue;
+
+        const next = { x, y, z, e };
+        const matchers = line.match(/[XYZE][-+]?\d*\.?\d+/gi) || [];
+        for (const token of matchers) {
+          const axis = token[0].toUpperCase();
+          const value = parseFloat(token.slice(1));
+          if (axis === 'X') next.x = value;
+          if (axis === 'Y') next.y = value;
+          if (axis === 'Z') next.z = value;
+          if (axis === 'E') next.e = value;
+        }
+
+        const isExtruding = next.e > e + 1e-7;
+        const type = isExtruding ? 'extrude' : 'travel';
+        if (!segmentsByType.has(type)) segmentsByType.set(type, []);
+
+        segmentsByType.get(type).push(
+          x, z, y,
+          next.x, next.z, next.y
+        );
+
+        x = next.x;
+        y = next.y;
+        z = next.z;
+        e = next.e;
+      }
+
+      const styleMap = {
+        extrude: 0x5DA8FF,
+        travel: 0xFFC857
+      };
+
+      for (const [type, coords] of segmentsByType.entries()) {
+        if (!coords.length) continue;
+        const geometry = new THREE.BufferGeometry();
+        geometry.setAttribute('position', new THREE.Float32BufferAttribute(coords, 3));
+        const material = new THREE.LineBasicMaterial({ color: styleMap[type] || 0xffffff, transparent: true, opacity: type === 'travel' ? 0.35 : 0.95 });
+        const lineSegments = new THREE.LineSegments(geometry, material);
+        group.add(lineSegments);
+      }
+
+      return group;
+    }
+
+    async function tryLoadPolarViewer() {
+      try {
+        const module = await import('https://esm.sh/@polar3d/gcode-viewer?bundle');
+        return module.GCodeViewer || null;
+      } catch (error) {
+        console.warn('Polar3D viewer failed to load. Falling back to internal line renderer.', error);
+        return null;
+      }
+    }
+
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: true });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.setSize(viewerEl.clientWidth, viewerEl.clientHeight);
@@ -787,6 +984,20 @@
     transformControls.setMode('translate');
     transformControls.setSize(0.9);
     scene.add(transformControls);
+
+    const state = {
+      currentObject: null,
+      currentMesh: null,
+      originalColorHex: 0xd8dce5,
+      paintMode: false,
+      currentGcodeText: '',
+      currentGcodeObject: null,
+      currentSliceMetadata: null,
+      gcodeViewer: null,
+      GCodeViewerCtor: null,
+      worker: null,
+      busy: false
+    };
 
     transformControls.addEventListener('dragging-changed', (event) => {
       if (!state.paintMode) {
@@ -829,31 +1040,12 @@
     axis.position.set(-110, 0.02, -110);
     scene.add(axis);
 
-    // -------------------------------------------------------------------------
-    // State
-    // -------------------------------------------------------------------------
-    const state = {
-      currentObject: null,
-      currentMesh: null,
-      originalColorHex: 0xd8dce5,
-      paintMode: false,
-      currentGcodeText: '',
-      currentGcodeObject: null,
-      currentSliceMetadata: null,
-      gcodeViewer: null,
-      worker: null,
-      busy: false
-    };
-
     const stlLoader = new STLLoader();
     const objLoader = new OBJLoader();
     const threeMfLoader = new ThreeMFLoader();
     const raycaster = new THREE.Raycaster();
     const pointer = new THREE.Vector2();
 
-    // -------------------------------------------------------------------------
-    // Utility
-    // -------------------------------------------------------------------------
     function setStatus(text, type = 'idle') {
       statusTextEl.textContent = text;
       statusDotEl.className = 'dot';
@@ -865,11 +1057,6 @@
     function setProgress(percent) {
       const clamped = Math.max(0, Math.min(100, Number(percent) || 0));
       progressBarEl.style.width = clamped + '%';
-    }
-
-    function formatMm(num) {
-      if (!Number.isFinite(num)) return '—';
-      return `${num.toFixed(2)} mm`;
     }
 
     function formatMm3ToCm3(mm3) {
@@ -892,13 +1079,21 @@
       return parseFloat(option.dataset.density || '1.24');
     }
 
+    function selectedMachineDimensions() {
+      const map = {
+        'bambu-256': { width: 256, depth: 256, height: 256 },
+        'compact-220': { width: 220, depth: 220, height: 250 },
+        'large-300': { width: 300, depth: 300, height: 350 }
+      };
+      return map[machineProfileEl.value] || map['bambu-256'];
+    }
+
     function setTopStatus(text) {
       topStatusEl.textContent = text;
     }
 
     function updateInteractionLabel() {
       let mode = 'Orbit Camera';
-
       if (state.paintMode) {
         mode = 'Paint Triangles';
       } else if (transformControls.dragging) {
@@ -906,7 +1101,6 @@
       } else if (state.currentMesh) {
         mode = transformControls.mode === 'rotate' ? 'Rotate Model + Orbit' : 'Translate Model + Orbit';
       }
-
       interactionModeLabelEl.textContent = mode;
       viewerEl.classList.toggle('painting', state.paintMode);
     }
@@ -963,15 +1157,9 @@
 
     function ensureNonIndexedGeometry(inputGeometry) {
       let geometry = inputGeometry.clone();
-      if (geometry.index) {
-        geometry = geometry.toNonIndexed();
-      }
-      if (!geometry.getAttribute('normal')) {
-        geometry.computeVertexNormals();
-      }
-      if (!geometry.getAttribute('color')) {
-        applyDefaultVertexColors(geometry);
-      }
+      if (geometry.index) geometry = geometry.toNonIndexed();
+      if (!geometry.getAttribute('normal')) geometry.computeVertexNormals();
+      if (!geometry.getAttribute('color')) applyDefaultVertexColors(geometry);
       geometry.computeBoundingBox();
       geometry.computeBoundingSphere();
       return geometry;
@@ -980,12 +1168,10 @@
     function geometryVolumeMM3(geometry) {
       const pos = geometry.getAttribute('position');
       if (!pos) return 0;
-
       let volume = 0;
       const a = new THREE.Vector3();
       const b = new THREE.Vector3();
       const c = new THREE.Vector3();
-
       for (let i = 0; i < pos.count; i += 3) {
         a.fromBufferAttribute(pos, i + 0);
         b.fromBufferAttribute(pos, i + 1);
@@ -999,10 +1185,8 @@
       geometry.computeBoundingBox();
       const box = geometry.boundingBox;
       if (!box) return;
-
       const size = new THREE.Vector3();
       box.getSize(size);
-
       bboxStatEl.textContent = `${size.x.toFixed(1)} × ${size.y.toFixed(1)} × ${size.z.toFixed(1)}`;
       geomVolumeStatEl.textContent = formatMm3ToCm3(geometryVolumeMM3(geometry));
     }
@@ -1011,7 +1195,6 @@
       geometry.computeBoundingBox();
       const box = geometry.boundingBox;
       if (!box) return geometry;
-
       const center = new THREE.Vector3();
       box.getCenter(center);
       geometry.translate(-center.x, -box.min.y, -center.z);
@@ -1024,12 +1207,10 @@
       const box = new THREE.Box3().setFromObject(object3D);
       const size = box.getSize(new THREE.Vector3());
       const center = box.getCenter(new THREE.Vector3());
-
       const maxDim = Math.max(size.x, size.y, size.z, 1);
       const fov = THREE.MathUtils.degToRad(camera.fov);
       let distance = (maxDim / (2 * Math.tan(fov / 2))) * 1.65;
       distance = Math.max(distance, 80);
-
       const dir = new THREE.Vector3(1, 0.85, 1).normalize();
       camera.position.copy(center.clone().add(dir.multiplyScalar(distance)));
       orbit.target.copy(center);
@@ -1060,13 +1241,11 @@
 
     function clearCurrentModel() {
       clearToolpath();
-
       if (state.currentObject) {
         transformControls.detach();
         scene.remove(state.currentObject);
         disposeHierarchy(state.currentObject);
       }
-
       state.currentObject = null;
       state.currentMesh = null;
       state.currentSliceMetadata = null;
@@ -1078,15 +1257,12 @@
 
     function setLoadedObject(rootObject, filename = 'Untitled') {
       clearCurrentModel();
-
       state.currentObject = rootObject;
       scene.add(rootObject);
-
       let candidateMesh = null;
       rootObject.traverse((child) => {
         if (!candidateMesh && child.isMesh) candidateMesh = child;
       });
-
       state.currentMesh = candidateMesh;
       if (state.currentMesh) {
         state.currentMesh.castShadow = true;
@@ -1095,7 +1271,6 @@
         updateModelStats(state.currentMesh.geometry);
         frameObject(rootObject);
       }
-
       loadedFilenameEl.textContent = filename;
       setTopStatus(filename);
       setPaintMode(false);
@@ -1103,34 +1278,26 @@
       resetEstimationUI();
       setStatus('Model loaded', 'good');
       setProgress(0);
+      generateCustomerEmail();
     }
 
     function mergedGeometryFromObject3D(object3D) {
       object3D.updateMatrixWorld(true);
-
       const geometries = [];
       object3D.traverse((child) => {
         if (!child.isMesh || !child.geometry) return;
-
         let g = child.geometry.clone();
         if (g.index) g = g.toNonIndexed();
         g.applyMatrix4(child.matrixWorld);
-
-        const normal = g.getAttribute('normal');
-        if (!normal) g.computeVertexNormals();
-
+        if (!g.getAttribute('normal')) g.computeVertexNormals();
         geometries.push(g);
       });
-
       if (!geometries.length) {
         throw new Error('No mesh geometry found in imported object.');
       }
-
       const merged = BufferGeometryUtils.mergeGeometries(geometries, false);
       geometries.forEach((g) => g.dispose?.());
-      if (!merged) {
-        throw new Error('Failed to merge imported geometry.');
-      }
+      if (!merged) throw new Error('Failed to merge imported geometry.');
       return merged;
     }
 
@@ -1165,145 +1332,97 @@
       if (typeof occtimportjs !== 'function') {
         throw new Error('occt-import-js failed to load.');
       }
-
       const occt = await occtimportjs({
-        locateFile: (path) => {
-          if (path.endsWith('.wasm')) {
-            return 'https://cdn.jsdelivr.net/npm/occt-import-js@0.0.24/dist/occt-import-js.wasm';
-          }
-          return path;
-        }
+        locateFile: (path) => path.endsWith('.wasm')
+          ? 'https://cdn.jsdelivr.net/npm/occt-import-js@0.0.24/dist/occt-import-js.wasm'
+          : path
       });
-
       const result = occt.ReadStepFile(new Uint8Array(arrayBuffer), null);
       if (!result || !result.success || !Array.isArray(result.meshes) || !result.meshes.length) {
         throw new Error('STEP import failed or returned no mesh data.');
       }
-
       const geometries = [];
-
       for (const meshData of result.meshes) {
         const positions = meshData?.attributes?.position?.array || [];
         const normals = meshData?.attributes?.normal?.array || [];
         const indexArray = meshData?.index?.array || [];
-
         if (!positions.length) continue;
-
         const geometry = new THREE.BufferGeometry();
         geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
-
-        if (normals.length) {
-          geometry.setAttribute('normal', new THREE.Float32BufferAttribute(normals, 3));
-        }
-
+        if (normals.length) geometry.setAttribute('normal', new THREE.Float32BufferAttribute(normals, 3));
         if (indexArray.length) {
           const flatIndices = [];
           for (const tri of indexArray) {
-            if (Array.isArray(tri)) {
-              flatIndices.push(tri[0], tri[1], tri[2]);
-            } else {
-              flatIndices.push(tri);
-            }
+            if (Array.isArray(tri)) flatIndices.push(tri[0], tri[1], tri[2]);
+            else flatIndices.push(tri);
           }
           geometry.setIndex(flatIndices);
         }
-
         let finalGeometry = geometry;
         if (finalGeometry.index) {
           finalGeometry = finalGeometry.toNonIndexed();
           geometry.dispose?.();
         }
-
-        if (!finalGeometry.getAttribute('normal')) {
-          finalGeometry.computeVertexNormals();
-        }
-
+        if (!finalGeometry.getAttribute('normal')) finalGeometry.computeVertexNormals();
         geometries.push(finalGeometry);
       }
-
-      if (!geometries.length) {
-        throw new Error('STEP file produced no valid geometry.');
-      }
-
+      if (!geometries.length) throw new Error('STEP file produced no valid geometry.');
       const merged = BufferGeometryUtils.mergeGeometries(geometries, false);
       geometries.forEach((g) => g.dispose?.());
-
-      if (!merged) {
-        throw new Error('Failed to merge STEP geometry.');
-      }
-
+      if (!merged) throw new Error('Failed to merge STEP geometry.');
       return merged;
     }
 
-    // -------------------------------------------------------------------------
-    // STL export for slicing
-    // -------------------------------------------------------------------------
     function meshToBinarySTLArrayBuffer(mesh) {
       mesh.updateMatrixWorld(true);
-
       const source = mesh.geometry.index ? mesh.geometry.toNonIndexed() : mesh.geometry.clone();
       const geometry = source.clone();
       geometry.applyMatrix4(mesh.matrixWorld);
-
       const pos = geometry.getAttribute('position');
       const normalAttr = geometry.getAttribute('normal');
       const triCount = Math.floor(pos.count / 3);
-
       const buffer = new ArrayBuffer(84 + triCount * 50);
       const view = new DataView(buffer);
-
       for (let i = 0; i < 80; i++) view.setUint8(i, 0);
       view.setUint32(80, triCount, true);
-
       const a = new THREE.Vector3();
       const b = new THREE.Vector3();
       const c = new THREE.Vector3();
       const n = new THREE.Vector3();
-
       let offset = 84;
-
       for (let i = 0; i < pos.count; i += 3) {
         if (normalAttr) {
-          n.set(
-            normalAttr.getX(i),
-            normalAttr.getY(i),
-            normalAttr.getZ(i)
-          ).normalize();
+          n.set(normalAttr.getX(i), normalAttr.getY(i), normalAttr.getZ(i)).normalize();
         } else {
           a.fromBufferAttribute(pos, i + 0);
           b.fromBufferAttribute(pos, i + 1);
           c.fromBufferAttribute(pos, i + 2);
           n.subVectors(c, b).cross(a.clone().sub(b)).normalize();
         }
-
         view.setFloat32(offset + 0, n.x, true);
         view.setFloat32(offset + 4, n.y, true);
         view.setFloat32(offset + 8, n.z, true);
-
         for (let v = 0; v < 3; v++) {
           const idx = i + v;
           view.setFloat32(offset + 12 + v * 12 + 0, pos.getX(idx), true);
           view.setFloat32(offset + 12 + v * 12 + 4, pos.getY(idx), true);
           view.setFloat32(offset + 12 + v * 12 + 8, pos.getZ(idx), true);
         }
-
         view.setUint16(offset + 48, 0, true);
         offset += 50;
       }
-
       geometry.dispose?.();
       if (source !== mesh.geometry) source.dispose?.();
-
       return buffer;
     }
 
-    // -------------------------------------------------------------------------
-    // G-code toolpath
-    // -------------------------------------------------------------------------
-    function buildGCodeViewer() {
+    async function buildGCodeViewer() {
       if (state.gcodeViewer) return state.gcodeViewer;
-
-      state.gcodeViewer = new GCodeViewer({
+      if (!state.GCodeViewerCtor) {
+        state.GCodeViewerCtor = await tryLoadPolarViewer();
+      }
+      if (!state.GCodeViewerCtor) return null;
+      state.gcodeViewer = new state.GCodeViewerCtor({
         container: polarBrandingEl,
         renderTubes: true,
         hidePurgeLines: true,
@@ -1313,40 +1432,30 @@
         lineHeight: parseFloat(layerHeightEl.value || '0.2'),
         radialSegments: 4
       });
-
       return state.gcodeViewer;
     }
 
-    function showToolpathFromGcode(gcodeText) {
-      if (!gcodeText) {
-        throw new Error('No G-code available. Slice the model first.');
-      }
-
+    async function showToolpathFromGcode(gcodeText) {
+      if (!gcodeText) throw new Error('No G-code available. Slice the model first.');
       clearToolpath();
-
-      const viewer = buildGCodeViewer();
-      if (viewer.setContainer) viewer.setContainer(polarBrandingEl);
-
-      if (viewer.dispose) {
-        // dispose only the internal materials/objects; keep instance live
-        try { viewer.dispose(); } catch {}
+      const viewer = await buildGCodeViewer();
+      if (viewer) {
+        if (viewer.setContainer) viewer.setContainer(polarBrandingEl);
+        if (viewer.dispose) {
+          try { viewer.dispose(); } catch {}
+        }
+        const result = viewer.parse(gcodeText);
+        state.currentGcodeObject = result.object;
+        setStatus('Toolpath displayed', 'good');
+      } else {
+        state.currentGcodeObject = createFallbackGCodeObject(gcodeText);
+        setStatus('Toolpath displayed with fallback renderer', 'warn');
       }
-
-      const result = viewer.parse(gcodeText);
-      state.currentGcodeObject = result.object;
       scene.add(state.currentGcodeObject);
-
-      if (state.currentMesh) {
-        state.currentMesh.visible = false;
-      }
-
+      if (state.currentMesh) state.currentMesh.visible = false;
       frameObject(state.currentGcodeObject);
-      setStatus('Toolpath displayed', 'good');
     }
 
-    // -------------------------------------------------------------------------
-    // Slice worker
-    // -------------------------------------------------------------------------
     function buildSliceWorker() {
       const workerCode = `
         import { CuraWASM } from 'https://esm.sh/cura-wasm?bundle';
@@ -1360,17 +1469,16 @@
 
         self.onmessage = async (event) => {
           const data = event.data || {};
-
           if (data.type !== 'slice') return;
-
           try {
             const settings = data.settings || {};
+            const dims = data.machine || { width: 256, depth: 256, height: 256 };
             const layerHeight = Number(settings.layerHeight ?? 0.2);
             const infillDensity = Number(settings.infillDensity ?? 15);
             const topLayers = Number(settings.topLayers ?? 5);
             const bottomLayers = Number(settings.bottomLayers ?? 5);
             const wallLoops = Number(settings.wallLoops ?? 3);
-            const infillPattern = String(settings.infillPattern ?? 'grid');
+            const infillPattern = String(settings.infillPattern ?? 'gyroid');
 
             if (slicer) {
               try { slicer.dispose(); } catch {}
@@ -1380,10 +1488,9 @@
             slicer = new CuraWASM({
               definition: resolveDefinition('ultimaker2'),
               overrides: [
-                { key: 'machine_width', value: 256 },
-                { key: 'machine_depth', value: 256 },
-                { key: 'machine_height', value: 256 },
-
+                { key: 'machine_width', value: dims.width },
+                { key: 'machine_depth', value: dims.depth },
+                { key: 'machine_height', value: dims.height },
                 { key: 'layer_height', value: layerHeight },
                 { key: 'layer_height_0', value: Math.max(layerHeight, 0.2) },
                 { key: 'infill_sparse_density', value: infillDensity },
@@ -1391,13 +1498,12 @@
                 { key: 'bottom_layers', value: bottomLayers },
                 { key: 'wall_line_count', value: wallLoops },
                 { key: 'infill_pattern', value: infillPattern },
-
                 { scope: 'e0', key: 'material_diameter', value: 1.75 },
-                { scope: 'e0', key: 'speed_print', value: 50 },
-                { scope: 'e0', key: 'speed_infill', value: 60 },
-                { scope: 'e0', key: 'speed_wall', value: 35 },
-                { scope: 'e0', key: 'speed_topbottom', value: 30 },
-                { scope: 'e0', key: 'material_print_temperature', value: 205 },
+                { scope: 'e0', key: 'speed_print', value: 120 },
+                { scope: 'e0', key: 'speed_infill', value: 160 },
+                { scope: 'e0', key: 'speed_wall', value: 80 },
+                { scope: 'e0', key: 'speed_topbottom', value: 60 },
+                { scope: 'e0', key: 'material_print_temperature', value: 220 },
                 { scope: 'e0', key: 'material_bed_temperature', value: 60 },
                 { scope: 'e0', key: 'skirt_line_count', value: 0 },
                 { scope: 'e0', key: 'support_enable', value: false }
@@ -1413,8 +1519,8 @@
             const result = await slicer.slice(data.stl, 'stl');
             const gcodeBuffer = result?.gcode;
             const metadata = result?.metadata || {};
-
             let gcodeText = '';
+
             if (gcodeBuffer instanceof ArrayBuffer) {
               gcodeText = new TextDecoder().decode(gcodeBuffer);
             } else if (ArrayBuffer.isView(gcodeBuffer)) {
@@ -1423,23 +1529,16 @@
               gcodeText = gcodeBuffer;
             }
 
-            post('done', {
-              gcodeText,
-              metadata
-            });
-
+            post('done', { gcodeText, metadata });
             try { slicer.dispose(); } catch {}
             slicer = null;
           } catch (error) {
-            post('error', {
-              message: error?.message || String(error)
-            });
+            post('error', { message: error?.message || String(error) });
             try { slicer?.dispose(); } catch {}
             slicer = null;
           }
         };
       `;
-
       const blob = new Blob([workerCode], { type: 'text/javascript' });
       const url = URL.createObjectURL(blob);
       return new Worker(url, { type: 'module' });
@@ -1447,7 +1546,6 @@
 
     function extractExtrudedVolumeCm3(metadata) {
       if (!metadata || typeof metadata !== 'object') return NaN;
-
       const candidates = [
         metadata.extrudedVolume,
         metadata.extruded_volume,
@@ -1460,33 +1558,25 @@
         metadata?.filament?.extrudedVolume,
         metadata?.filament?.extruded_volume
       ];
-
       for (const candidate of candidates) {
-        if (Number.isFinite(candidate)) {
-          return Number(candidate);
-        }
+        if (Number.isFinite(candidate)) return Number(candidate);
       }
-
-      // Fallback: derive from filament length and diameter if present.
       const filamentLengthMm =
         metadata.filamentUsed ??
         metadata.filament_used ??
         metadata?.filament?.used ??
         metadata?.filament?.length ??
         metadata?.filament_length;
-
       const filamentDiameterMm =
         metadata.filamentDiameter ??
         metadata.filament_diameter ??
         metadata?.filament?.diameter ??
         1.75;
-
       if (Number.isFinite(filamentLengthMm) && Number.isFinite(filamentDiameterMm)) {
         const radiusMm = Number(filamentDiameterMm) / 2;
         const volumeMm3 = Math.PI * radiusMm * radiusMm * Number(filamentLengthMm);
-        return volumeMm3 / 1000; // mm^3 -> cm^3
+        return volumeMm3 / 1000;
       }
-
       return NaN;
     }
 
@@ -1498,19 +1588,13 @@
         metadata?.print_time,
         metadata?.time
       ];
-
       for (const candidate of candidates) {
         if (Number.isFinite(candidate)) return Number(candidate);
       }
-
-      // Fallback parse from G-code comments if available.
       if (typeof gcodeText === 'string') {
-        const m =
-          gcodeText.match(/;TIME:(\d+)/) ||
-          gcodeText.match(/estimated printing time[^\\d]*(\\d+)/i);
+        const m = gcodeText.match(/;TIME:(\d+)/) || gcodeText.match(/estimated printing time[^\d]*(\d+)/i);
         if (m) return Number(m[1]);
       }
-
       return NaN;
     }
 
@@ -1519,17 +1603,13 @@
         setStatus('Load a model before slicing.', 'warn');
         return;
       }
-
       if (state.busy) return;
-
       try {
         clearToolpath();
         state.busy = true;
         setStatus('Preparing STL for slicing…', 'busy');
         setProgress(2);
-
         const stlBuffer = meshToBinarySTLArrayBuffer(state.currentMesh);
-
         const settings = {
           layerHeight: parseFloat(layerHeightEl.value || '0.2'),
           topLayers: parseInt(topLayersEl.value || '5', 10),
@@ -1539,19 +1619,17 @@
           infillPattern: infillPatternEl.value,
           material: materialEl.value
         };
-
+        const machine = selectedMachineDimensions();
         if (state.worker) {
           state.worker.terminate();
           state.worker = null;
         }
-
         state.worker = buildSliceWorker();
-
         const result = await new Promise((resolve, reject) => {
           state.worker.onmessage = (event) => {
             const msg = event.data || {};
             if (msg.type === 'progress') {
-              setStatus(\`Slicing… \${Math.round(msg.percent || 0)}%\`, 'busy');
+              setStatus(`Slicing… ${Math.round(msg.percent || 0)}%`, 'busy');
               setProgress(msg.percent || 0);
             } else if (msg.type === 'done') {
               resolve(msg);
@@ -1559,20 +1637,13 @@
               reject(new Error(msg.message || 'Unknown worker error'));
             }
           };
-
-          state.worker.onerror = (err) => {
-            reject(new Error(err.message || 'Worker failed'));
-          };
-
-          state.worker.postMessage({ type: 'slice', stl: stlBuffer, settings }, [stlBuffer]);
+          state.worker.onerror = (err) => reject(new Error(err.message || 'Worker failed'));
+          state.worker.postMessage({ type: 'slice', stl: stlBuffer, settings, machine }, [stlBuffer]);
         });
-
         setProgress(100);
         setStatus('Slice complete', 'good');
-
         state.currentGcodeText = result.gcodeText || '';
         state.currentSliceMetadata = result.metadata || {};
-
         const volumeCm3 = extractExtrudedVolumeCm3(state.currentSliceMetadata);
         const density = selectedMaterialDensity();
         const massG = Number.isFinite(volumeCm3) ? volumeCm3 * density : NaN;
@@ -1580,58 +1651,42 @@
         const pricePerKg = parseFloat(pricePerKgEl.value || '0');
         const cost = Number.isFinite(massKg) ? massKg * pricePerKg : NaN;
         const seconds = extractEstimatedSeconds(state.currentSliceMetadata, state.currentGcodeText);
-
         timeStatEl.textContent = formatTime(seconds);
         extrudedVolumeStatEl.textContent = Number.isFinite(volumeCm3) ? `${volumeCm3.toFixed(2)} cm³` : '—';
         massStatEl.textContent = Number.isFinite(massG) ? `${massG.toFixed(2)} g` : '—';
         costStatEl.textContent = Number.isFinite(cost) ? `$${cost.toFixed(2)}` : '—';
         metadataDebugEl.textContent = JSON.stringify(state.currentSliceMetadata, null, 2);
-
+        generateCustomerEmail();
       } catch (error) {
         console.error(error);
-        setStatus(\`Slice failed: \${error.message}\`, 'warn');
+        setStatus(`Slice failed: ${error.message}`, 'warn');
         setProgress(0);
       } finally {
         state.busy = false;
       }
     }
 
-    // -------------------------------------------------------------------------
-    // Painting
-    // -------------------------------------------------------------------------
     function paintIntersectedFace(event) {
       if (!state.paintMode || !state.currentMesh) return;
-
       const rect = renderer.domElement.getBoundingClientRect();
       pointer.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
       pointer.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
-
       raycaster.setFromCamera(pointer, camera);
-
       const hits = raycaster.intersectObject(state.currentMesh, false);
       if (!hits.length) return;
-
       const hit = hits[0];
       const geometry = state.currentMesh.geometry;
       const colorAttr = geometry.getAttribute('color');
       if (!colorAttr) return;
-
       const pickedColor = new THREE.Color(paintColorEl.value);
-
       let baseIndex = -1;
-      if (Number.isFinite(hit.faceIndex)) {
-        baseIndex = hit.faceIndex * 3;
-      } else if (hit.face) {
-        baseIndex = hit.face.a;
-      }
-
+      if (Number.isFinite(hit.faceIndex)) baseIndex = hit.faceIndex * 3;
+      else if (hit.face) baseIndex = hit.face.a;
       if (baseIndex < 0) return;
-
       for (let i = 0; i < 3; i++) {
         const vertexIndex = baseIndex + i;
         colorAttr.setXYZ(vertexIndex, pickedColor.r, pickedColor.g, pickedColor.b);
       }
-
       colorAttr.needsUpdate = true;
     }
 
@@ -1642,21 +1697,14 @@
       setStatus('Paint reset', 'good');
     }
 
-    // -------------------------------------------------------------------------
-    // File ingest
-    // -------------------------------------------------------------------------
     async function handleFile(file) {
       if (!file) return;
-
       try {
         setStatus('Reading file…', 'busy');
         setProgress(5);
-
         const filename = file.name || 'Untitled';
         const ext = filename.split('.').pop()?.toLowerCase() || '';
-
         let geometry = null;
-
         if (ext === 'stl') {
           const buffer = await file.arrayBuffer();
           geometry = stlLoader.parse(buffer);
@@ -1672,26 +1720,57 @@
         } else {
           throw new Error('Unsupported file type. Use STL, OBJ, 3MF, STEP, or STP.');
         }
-
         setProgress(60);
-
         const { group } = buildMeshFromGeometry(geometry);
         setLoadedObject(group, filename);
-
         setProgress(100);
         setStatus('Model ready', 'good');
       } catch (error) {
         console.error(error);
-        setStatus(\`Load failed: \${error.message}\`, 'warn');
+        setStatus(`Load failed: ${error.message}`, 'warn');
         setProgress(0);
       }
     }
 
-    // -------------------------------------------------------------------------
-    // Events
-    // -------------------------------------------------------------------------
-    browseBtnEl.addEventListener('click', () => fileInputEl.click());
+    function generateCustomerEmail() {
+      const quoteEmail = quoteEmailEl.value.trim() || 'quotes@layerworksengineering.com';
+      quoteEmailTextEl.textContent = quoteEmail;
+      const customer = customerNameEl.value.trim() || 'Hello';
+      const fileName = loadedFilenameEl.textContent && loadedFilenameEl.textContent !== 'None'
+        ? loadedFilenameEl.textContent
+        : '[attach your file]';
+      const material = materialEl.value;
+      const layerHeight = layerHeightEl.value || '0.20';
+      const infill = infillDensityEl.value || '15';
+      const estimatedCost = costStatEl.textContent || '—';
+      const estimatedMass = massStatEl.textContent || '—';
+      const estimatedTime = timeStatEl.textContent || '—';
+      const notes = projectNotesEl.value.trim() || 'Please quote this part and advise on any printability or material recommendations.';
 
+      generatedEmailEl.value = `${customer},\n\nI would like to request a quote for a 3D printed part.\n\nAttached file(s): ${fileName}\nPreferred material: ${material}\nRequested layer height: ${layerHeight} mm\nRequested infill: ${infill}%\nEstimated mass from configurator: ${estimatedMass}\nEstimated print time from configurator: ${estimatedTime}\nEstimated material-based cost: ${estimatedCost}\n\nProject notes:\n${notes}\n\nI understand final pricing may vary based on support material, orientation, finishing, part complexity, tolerances, color, and quantity.\n\nPlease review the attached files/images and send a formal quote to: ${quoteEmail}\n`;
+    }
+
+    function assert(name, condition, details = '') {
+      const li = document.createElement('li');
+      li.textContent = `${condition ? 'PASS' : 'FAIL'} — ${name}${details ? `: ${details}` : ''}`;
+      li.style.color = condition ? 'var(--good)' : 'var(--danger)';
+      testResultsEl.appendChild(li);
+      return condition;
+    }
+
+    function runStartupChecks() {
+      testResultsEl.innerHTML = '';
+      const results = [];
+      results.push(assert('Viewer mount exists', !!viewerEl));
+      results.push(assert('Sidebar controls exist', !!sliceBtnEl && !!toolpathBtnEl && !!materialEl));
+      const dims = selectedMachineDimensions();
+      results.push(assert('Default machine profile resolves', Number.isFinite(dims.width) && Number.isFinite(dims.depth) && Number.isFinite(dims.height), JSON.stringify(dims)));
+      results.push(assert('Three import available', typeof THREE.WebGLRenderer === 'function'));
+      const passed = results.filter(Boolean).length;
+      testSummaryEl.textContent = `${passed}/${results.length} startup checks passed.`;
+    }
+
+    browseBtnEl.addEventListener('click', () => fileInputEl.click());
     fileInputEl.addEventListener('change', (event) => {
       const file = event.target.files?.[0];
       handleFile(file);
@@ -1713,7 +1792,6 @@
     viewerPaneEl.addEventListener('dragleave', (event) => {
       event.preventDefault();
       event.stopPropagation();
-
       const related = event.relatedTarget;
       if (!viewerPaneEl.contains(related)) {
         dropOverlayEl.classList.remove('active');
@@ -1724,28 +1802,27 @@
       event.preventDefault();
       event.stopPropagation();
       dropOverlayEl.classList.remove('active');
-
       const file = event.dataTransfer?.files?.[0];
       handleFile(file);
     });
 
     renderer.domElement.addEventListener('pointerdown', (event) => {
-      if (state.paintMode) {
-        paintIntersectedFace(event);
-      }
+      if (state.paintMode) paintIntersectedFace(event);
     });
 
     fitViewBtnEl.addEventListener('click', () => {
       if (state.currentObject) frameObject(state.currentObject);
     });
 
-    transformTranslateBtnEl.addEventListener('click', () => setTransformMode('translate'));
-    transformRotateBtnEl.addEventListener('click', () => setTransformMode('rotate'));
-
-    paintToggleEl.addEventListener('click', () => {
-      setPaintMode(!state.paintMode);
+    showMeshBtnEl.addEventListener('click', () => {
+      clearToolpath();
+      setStatus('Solid mesh displayed', 'good');
+      if (state.currentObject) frameObject(state.currentObject);
     });
 
+    transformTranslateBtnEl.addEventListener('click', () => setTransformMode('translate'));
+    transformRotateBtnEl.addEventListener('click', () => setTransformMode('rotate'));
+    paintToggleEl.addEventListener('click', () => setPaintMode(!state.paintMode));
     resetPaintBtnEl.addEventListener('click', resetMeshPaint);
 
     recenterBtnEl.addEventListener('click', () => {
@@ -1757,15 +1834,32 @@
       updateModelStats(recentered);
       frameObject(state.currentObject);
       setStatus('Model recentered', 'good');
+      generateCustomerEmail();
     });
 
     sliceBtnEl.addEventListener('click', runSlice);
-
-    toolpathBtnEl.addEventListener('click', () => {
+    toolpathBtnEl.addEventListener('click', async () => {
       try {
-        showToolpathFromGcode(state.currentGcodeText);
+        await showToolpathFromGcode(state.currentGcodeText);
       } catch (error) {
         setStatus(error.message, 'warn');
+      }
+    });
+
+    materialEl.addEventListener('change', generateCustomerEmail);
+    layerHeightEl.addEventListener('input', generateCustomerEmail);
+    infillDensityEl.addEventListener('input', generateCustomerEmail);
+    projectNotesEl.addEventListener('input', generateCustomerEmail);
+    customerNameEl.addEventListener('input', generateCustomerEmail);
+    quoteEmailEl.addEventListener('input', generateCustomerEmail);
+    generateEmailBtnEl.addEventListener('click', generateCustomerEmail);
+    copyEmailBtnEl.addEventListener('click', async () => {
+      generateCustomerEmail();
+      try {
+        await navigator.clipboard.writeText(generatedEmailEl.value);
+        setStatus('Email copied to clipboard', 'good');
+      } catch {
+        setStatus('Clipboard copy failed', 'warn');
       }
     });
 
@@ -1792,6 +1886,7 @@
           costStatEl.textContent = `$${cost.toFixed(2)}`;
         }
       }
+      generateCustomerEmail();
     });
 
     window.addEventListener('resize', () => {
@@ -1802,18 +1897,12 @@
       renderer.setSize(w, h);
     });
 
-    // -------------------------------------------------------------------------
-    // Animation
-    // -------------------------------------------------------------------------
     function animate() {
       requestAnimationFrame(animate);
       orbit.update();
       renderer.render(scene, camera);
     }
 
-    // -------------------------------------------------------------------------
-    // Boot
-    // -------------------------------------------------------------------------
     function seedDemoPlaceholder() {
       const geometry = new THREE.BoxGeometry(40, 20, 30).toNonIndexed();
       applyDefaultVertexColors(geometry);
@@ -1828,10 +1917,12 @@
       state.currentSliceMetadata = null;
       state.currentGcodeText = '';
       resetEstimationUI();
+      generateCustomerEmail();
     }
 
     setTransformMode('translate');
     updateInteractionLabel();
+    runStartupChecks();
     seedDemoPlaceholder();
     animate();
   </script>
