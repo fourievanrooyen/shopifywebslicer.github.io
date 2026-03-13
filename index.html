@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>3D Print Configurator — LayerWorks Engineering</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/TransformControls.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/STLLoader.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/OBJLoader.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/3MFLoader.js"></script>
+
+<style>
+/* Your Custom UI Styles */
+*{margin:0;padding:0;box-sizing:border-box}:root{--bg:#080C14;--bg2:#0E1420;--card:#141C2E;--card2:#1A2540;--border:rgba(255,255,255,0.06);--border2:rgba(255,255,255,0.1);--cyan:#00E5FF;--cyan15:rgba(0,229,255,0.12);--cyan30:rgba(0,229,255,0.25);--white:#EFF4F8;--grey:#8896AB;--dim:#4A5568;--font:'Outfit',system-ui,sans-serif;--mono:'JetBrains Mono',monospace}html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--white);font-family:var(--font);-webkit-font-smoothing:antialiased}.app{display:flex;flex-direction:column;height:100vh}.topbar{display:flex;align-items:center;gap:10px;padding:10px 16px;background:var(--bg2);border-bottom:1px solid var(--border);flex-shrink:0;z-index:20}.topbar-logo{font-weight:800;font-size:17px;color:var(--cyan);letter-spacing:-.5px}.topbar-sep{width:1px;height:20px;background:var(--border2);margin:0 4px}.topbar-badge{font-size:10px;font-weight:700;letter-spacing:1.8px;text-transform:uppercase;color:var(--dim);background:rgba(255,255,255,.04);padding:3px 10px;border-radius:20px}.topbar-file{margin-left:auto;font-size:12px;color:var(--dim);font-family:var(--mono)}.main{display:flex;flex:1;min-height:0}.viewer{flex:1;position:relative;display:flex;min-width:0}.viewer canvas{width:100%;height:100%;display:block;cursor:grab}.viewer canvas:active{cursor:grabbing}
+.dropzone{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;z-index:10;transition:background.2s; background: rgba(8, 12, 20, 0.9)}.dropzone.over{background:rgba(0,229,255,.04);outline:2px dashed var(--cyan);outline-offset:-12px}.drop-browse{display:inline-block;padding:10px 24px;border-radius:8px;background:var(--cyan15);border:1px solid rgba(0,229,255,.2);color:var(--cyan);font-weight:600;font-size:13px;cursor:pointer;transition:all.2s;font-family:var(--font);margin-top:4px}.drop-browse:hover{background:var(--cyan30);border-color:var(--cyan)}
+.loading-overlay{position:absolute;inset:0;display:none;align-items:center;justify-content:center;background:rgba(8,12,20,.9);z-index:15}
+.sidebar{width:370px;background:var(--bg2);border-left:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;overflow:hidden}.tabs{display:flex;border-bottom:1px solid var(--border);flex-shrink:0}.tab{flex:1;padding:11px 0;text-align:center;font-size:12px;font-weight:600;cursor:pointer;color:var(--dim);border:none;border-bottom:2px solid transparent;background:transparent;font-family:var(--font);transition:all.15s}.tab:hover{color:var(--grey)}.tab.on{color:var(--cyan);border-bottom-color:var(--cyan)}.panel{flex:1;overflow-y:auto;padding:16px}
+/* Tool UI */
+#interaction-modes { position: absolute; left: 15px; top: 15px; display: none; flex-direction: column; gap: 8px; z-index: 10; }
+.mode-btn { background: var(--card2); border: 1px solid var(--border); color: var(--white); padding: 10px; border-radius: 8px; cursor: pointer; font-family: var(--font); font-size: 12px; transition: 0.2s;}
+.mode-btn:hover { border-color: rgba(0,229,255,.4); }
+.mode-btn.active { border-color: var(--cyan); color: var(--cyan); background: var(--cyan15); }
+.color-picker-container { display: none; margin-top: 5px; flex-wrap: wrap; gap: 5px; width: 120px;}
+.color-swatch { width: 24px; height: 24px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; }
+.color-swatch.active { border-color: var(--cyan); }
+</style>
+</head>
+<body>
+<div class="app">
+    <div class="topbar">
+        <span class="topbar-logo">LayerWorks</span><div class="topbar-sep"></div><span class="topbar-badge">3D Configurator</span>
+        <span class="topbar-file" id="topFileName"></span>
+    </div>
+    <div class="main">
+        <div class="viewer" id="vc">
+            <canvas id="c3d"></canvas>
+            
+            <div id="interaction-modes">
+                <button class="mode-btn active" id="btn-orbit">🔄 Rotate Camera</button>
+                <button class="mode-btn" id="btn-move">⬌ Move Object</button>
+                <button class="mode-btn" id="btn-paint">🖌️ Paint Color</button>
+                <div class="color-picker-container" id="color-picker">
+                    <div class="color-swatch active" style="background: #00E5FF;" data-color="0x00E5FF"></div>
+                    <div class="color-swatch" style="background: #EF4444;" data-color="0xEF4444"></div>
+                    <div class="color-swatch" style="background: #34D399;" data-color="0x34D399"></div>
+                    <div class="color-swatch" style="background: #FBBF24;" data-color="0xFBBF24"></div>
+                    <div class="color-swatch" style="background: #FFFFFF;" data-color="0xFFFFFF"></div>
+                    <div class="color-swatch" style="background: #111111;" data-color="0x111111"></div>
+                </div>
+            </div>
+
+            <div class="dropzone" id="dz">
+                <div style="font-size:16px;font-weight:600;color:var(--white)">Drag & drop a 3D File</div>
+                <div style="font-size:12px;color:var(--dim)">Supports.stl,.obj, and.3mf</div>
+                <label class="drop-browse">Choose File<input type="file" accept=".stl,.obj,.3mf" id="fIn" style="display:none"></label>
+            </div>
+            
+            <div class="loading-overlay" id="loadOv"><span style="color:var(--cyan);font-weight:600;font-size:15px">Loading model...</span></div>
+        </div>
+        
+        <div class="sidebar">
+            <div class="tabs"><button class="tab on">Configuration</button></div>
+            <div class="panel" style="text-align: center; color: var(--dim); padding-top: 40px; font-size: 13px;">
+                <p>Upload a model to adjust advanced 3D printing settings and request a quote.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let scene, camera, renderer, orbitControls, transformControls;
+let currentMesh = null;
+let currentMode = 'orbit'; 
+let paintColor = new THREE.Color(0x00E5FF); 
+const raycaster = new THREE.Raycaster();
+const mouse = new THREE.Vector2();
+
+function init() {
+    const container = document.getElementById('vc');
+    const canvas = document.getElementById('c3d');
+
+    // Scene Setup
+    scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x0A0A12);
+
+    camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 10000);
+    camera.position.set(0, 150, 300);
+
+    renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true });
+    renderer.setSize(container.clientWidth, container.clientHeight);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+    // Bambu-style Build Plate (256x256)
+    const grid = new THREE.GridHelper(256, 25, 0x4A5568, 0x1A2540);
+    scene.add(grid);
+    const plateGeo = new THREE.PlaneGeometry(256, 256);
+    const plateMat = new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.8, side: THREE.DoubleSide });
+    const plate = new THREE.Mesh(plateGeo, plateMat);
+    plate.rotation.x = Math.PI / 2;
+    plate.position.y = -0.1;
+    scene.add(plate);
+
+    // Lights
+    scene.add(new THREE.AmbientLight(0xffffff, 0.6));
+    const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
+    dirLight.position.set(100, 200, 50);
+    scene.add(dirLight);
+
+    // Controls (Orbit & Transform)
+    orbitControls = new THREE.OrbitControls(camera, renderer.domElement);
+    orbitControls.enableDamping = true;
+    orbitControls.target.set(0, 0, 0);
+
+    transformControls = new THREE.TransformControls(camera, renderer.domElement);
+    transformControls.addEventListener('dragging-changed', function(event) {
+        orbitControls.enabled =!event.value;
+    });
+    scene.add(transformControls);
+
+    // Resize Handler
+    window.addEventListener('resize', () => {
+        camera.aspect = container.clientWidth / container.clientHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(container.clientWidth, container.clientHeight);
+    });
+
+    // Vertex Painting Raycaster
+    canvas.addEventListener('click', (event) => {
+        if (currentMode!== 'paint' ||!currentMesh) return;
+        
+        const rect = renderer.domElement.getBoundingClientRect();
+        mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+        mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+        
+        raycaster.setFromCamera(mouse, camera);
+        const intersects = raycaster.intersectObject(currentMesh);
+        
+        if (intersects.length > 0) {
+            const face = intersects.face;
+            const geometry = currentMesh.geometry;
+            const colorAttr = geometry.getAttribute('color');
+            
+            // Apply color to the specific triangle face clicked
+            colorAttr.setXYZ(face.a, paintColor.r, paintColor.g, paintColor.b);
+            colorAttr.setXYZ(face.b, paintColor.r, paintColor.g, paintColor.b);
+            colorAttr.setXYZ(face.c, paintColor.r, paintColor.g, paintColor.b);
+            colorAttr.needsUpdate = true;
+        }
+    });
+
+    setupUI();
+    animate();
+}
+
+function animate() {
+    requestAnimationFrame(animate);
+    orbitControls.update();
+    renderer.render(scene, camera);
+}
+
+function loadFile(file) {
+    document.getElementById('loadOv').style.display = 'flex';
+    document.getElementById('topFileName').textContent = file.name;
+    const extension = file.name.split('.').pop().toLowerCase();
+    const reader = new FileReader();
+
+    reader.onload = function(e) {
+        const contents = e.target.result;
+        
+        if (currentMesh) {
+            scene.remove(currentMesh);
+            transformControls.detach();
+            currentMesh.geometry.dispose();
+            if(currentMesh.material) currentMesh.material.dispose();
+        }
+
+        let geometry;
+        if (extension === 'stl') {
+            const loader = new THREE.STLLoader();
+            geometry = loader.parse(contents);
+        } else if (extension === 'obj') {
+            const text = new TextDecoder().decode(contents);
+            const loader = new THREE.OBJLoader();
+            const group = loader.parse(text);
+            geometry = group.children.geometry; 
+        } else if (extension === '3mf') {
+            const loader = new THREE.ThreeMFLoader();
+            const group = loader.parse(contents);
+            geometry = group.children.geometry;
+        }
+
+        // De-index geometry for hard-edged vertex painting
+        if (geometry.index) geometry = geometry.toNonIndexed();
+        
+        // Add white vertex colors to the whole model
+        const colors = new Float32Array(geometry.attributes.position.count * 3);
+        colors.fill(0.8); // Light grey default
+        geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+
+        const material = new THREE.MeshStandardMaterial({ 
+            vertexColors: true, roughness: 0.5, metalness: 0.1 
+        });
+
+        currentMesh = new THREE.Mesh(geometry, material);
+        
+        // Center object automatically
+        geometry.computeBoundingBox();
+        const center = geometry.boundingBox.getCenter(new THREE.Vector3());
+        currentMesh.position.set(-center.x, -geometry.boundingBox.min.y, -center.z);
+
+        scene.add(currentMesh);
+        document.getElementById('dz').style.display = 'none';
+        document.getElementById('loadOv').style.display = 'none';
+        document.getElementById('interaction-modes').style.display = 'flex';
+        
+        setMode('orbit'); 
+    };
+
+    if (extension === 'stl' |
+
+| extension === '3mf') {
+        reader.readAsArrayBuffer(file);
+    } else {
+        reader.readAsArrayBuffer(file);
+    }
+}
+
+function setMode(mode) {
+    currentMode = mode;
+    document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById(`btn-${mode}`).classList.add('active');
+
+    const colorPicker = document.getElementById('color-picker');
+
+    if (mode === 'move') {
+        transformControls.attach(currentMesh);
+        orbitControls.enabled = true;
+        colorPicker.style.display = 'none';
+    } else if (mode === 'paint') {
+        transformControls.detach();
+        orbitControls.enabled = false; // Disable orbit so we can click to paint
+        colorPicker.style.display = 'flex';
+    } else {
+        transformControls.detach();
+        orbitControls.enabled = true;
+        colorPicker.style.display = 'none';
+    }
+}
+
+function setupUI() {
+    const dz = document.getElementById('dz');
+    dz.ondragover = e => { e.preventDefault(); dz.classList.add('over'); };
+    dz.ondragleave = () => dz.classList.remove('over');
+    dz.ondrop = e => { e.preventDefault(); dz.classList.remove('over'); loadFile(e.dataTransfer.files); };
+    document.getElementById('fIn').onchange = e => loadFile(e.target.files);
+
+    document.getElementById('btn-orbit').onclick = () => setMode('orbit');
+    document.getElementById('btn-move').onclick = () => setMode('move');
+    document.getElementById('btn-paint').onclick = () => setMode('paint');
+
+    // Color swatch logic
+    document.querySelectorAll('.color-swatch').forEach(swatch => {
+        swatch.onclick = (e) => {
+            document.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('active'));
+            e.target.classList.add('active');
+            paintColor.setHex(parseInt(e.target.dataset.color));
+        };
+    });
+}
+
+window.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>
