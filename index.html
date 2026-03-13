@@ -1,752 +1,1839 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>3D Print Configurator & Slicer</title>
-    <style>
-        :root {
-            --bg-dark: #080C14;
-            --bg-card: #141C2E;
-            --text-light: #e2e8f0;
-            --primary: #3b82f6;
-            --primary-hover: #2563eb;
-            --border: #1e293b;
-        }
+  <meta charset="UTF-8" />
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+  />
+  <title>3D Print Configurator & Browser Slicer</title>
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
+  <!-- OCCT STEP/IGES/BREP importer (loads global occtimportjs) -->
+  <script src="https://cdn.jsdelivr.net/npm/occt-import-js@0.0.24/dist/occt-import-js.js"></script>
 
-        body {
-            width: 100vw;
-            height: 100vh;
-            overflow: hidden;
-            background-color: var(--bg-dark);
-            color: var(--text-light);
-            display: flex;
-            flex-direction: column;
-        }
+  <style>
+    :root{
+      --bg:#080C14;
+      --bg2:#0E1420;
+      --card:#141C2E;
+      --card2:#1A2540;
+      --border:#24314f;
+      --text:#EAF0FF;
+      --muted:#9AA7C2;
+      --accent:#5DA8FF;
+      --accent2:#78C7FF;
+      --good:#1FD18A;
+      --warn:#FFC857;
+      --danger:#FF6B6B;
+      --input:#0D1526;
+      --shadow:0 12px 28px rgba(0,0,0,0.35);
+      --radius:18px;
+      --sidebar-width:350px;
+      --topbar-height:64px;
+    }
 
-        /* Top Bar */
-        #topbar {
-            height: 60px;
-            background-color: var(--bg-card);
-            border-bottom: 1px solid var(--border);
-            display: flex;
-            align-items: center;
-            padding: 0 20px;
-            font-weight: bold;
-            font-size: 1.2rem;
-            z-index: 10;
-        }
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+      background: var(--bg);
+      color: var(--text);
+      font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+    }
 
-        /* Main Layout */
-        #main-container {
-            display: flex;
-            flex: 1;
-            height: calc(100vh - 60px);
-            position: relative;
-        }
+    body {
+      display: flex;
+      flex-direction: column;
+    }
 
-        /* 3D Canvas Area */
-        #canvas-wrapper {
-            flex: 1;
-            position: relative;
-            background-color: var(--bg-dark);
-        }
+    .app {
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      background:
+        radial-gradient(circle at top left, rgba(93,168,255,0.08), transparent 25%),
+        linear-gradient(180deg, #080C14 0%, #0B111B 100%);
+    }
 
-        #webgl-canvas {
-            width: 100%;
-            height: 100%;
-            display: block;
-        }
+    .topbar {
+      height: var(--topbar-height);
+      min-height: var(--topbar-height);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 18px;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      background: rgba(8,12,20,0.94);
+      backdrop-filter: blur(10px);
+      z-index: 10;
+    }
 
-        /* Drag & Drop Overlay */
-        #drop-overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(8, 12, 20, 0.85);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-size: 2rem;
-            font-weight: bold;
-            color: var(--primary);
-            border: 4px dashed var(--primary);
-            z-index: 20;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.2s ease;
-        }
-        #drop-overlay.active {
-            opacity: 1;
-        }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+    }
 
-        /* Sidebar UI */
-        #sidebar {
-            width: 350px;
-            background-color: var(--bg-card);
-            border-left: 1px solid var(--border);
-            overflow-y: auto;
-            display: flex;
-            flex-direction: column;
-            padding: 20px;
-            gap: 20px;
-            z-index: 10;
-        }
+    .brand-badge {
+      width: 36px;
+      height: 36px;
+      border-radius: 12px;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(135deg, var(--accent), #89d2ff);
+      color: #08111e;
+      font-weight: 800;
+      box-shadow: 0 10px 20px rgba(93,168,255,0.22);
+    }
 
-        .card {
-            background-color: var(--bg-dark);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            padding: 15px;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
+    .brand-copy {
+      display: flex;
+      flex-direction: column;
+      line-height: 1.05;
+    }
 
-        h3 {
-            font-size: 1.1rem;
-            margin-bottom: 5px;
-            color: #fff;
-            border-bottom: 1px solid var(--border);
-            padding-bottom: 5px;
-        }
+    .brand-copy small {
+      color: var(--muted);
+      font-weight: 500;
+      font-size: 0.75rem;
+      margin-top: 2px;
+    }
 
-        .form-group {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
+    .topbar-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
 
-        .form-group label {
-            font-size: 0.9rem;
-        }
+    .pill {
+      padding: 8px 12px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.03);
+      color: var(--muted);
+      font-size: 0.82rem;
+      white-space: nowrap;
+    }
 
-        .form-group input, .form-group select {
-            background-color: var(--bg-card);
-            color: var(--text-light);
-            border: 1px solid var(--border);
-            padding: 5px 8px;
-            border-radius: 4px;
-            width: 120px;
-        }
+    .main {
+      flex: 1;
+      min-height: 0;
+      display: flex;
+      width: 100%;
+      height: calc(100vh - var(--topbar-height));
+    }
 
-        button {
-            background-color: var(--primary);
-            color: white;
-            border: none;
-            padding: 10px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: bold;
-            transition: background 0.2s;
-        }
+    .viewer-pane {
+      position: relative;
+      flex: 1;
+      min-width: 0;
+      height: 100%;
+      background:
+        radial-gradient(circle at 20% 20%, rgba(93,168,255,0.06), transparent 30%),
+        linear-gradient(180deg, #09101A 0%, #0A101A 100%);
+      overflow: hidden;
+    }
 
-        button:hover {
-            background-color: var(--primary-hover);
-        }
+    #viewer {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      cursor: grab;
+      touch-action: none;
+    }
 
-        button.active {
-            background-color: #10b981; /* Green for active states */
-        }
+    #viewer.painting {
+      cursor: crosshair;
+    }
 
-        #cost-estimation {
-            font-size: 1.2rem;
-            font-weight: bold;
-            color: #10b981;
-            text-align: right;
-            margin-top: 10px;
-        }
+    .canvas-overlay-ui {
+      pointer-events: none;
+      position: absolute;
+      inset: 0;
+      z-index: 4;
+    }
 
-        #log-output {
-            font-size: 0.8rem;
-            color: #94a3b8;
-            background: var(--bg-dark);
-            padding: 10px;
-            border-radius: 4px;
-            height: 80px;
-            overflow-y: auto;
-            font-family: monospace;
-        }
-    </style>
+    .hud {
+      position: absolute;
+      top: 18px;
+      left: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      pointer-events: none;
+    }
 
-    <script type="importmap">
-        {
-            "imports": {
-                "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
-                "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
-            }
-        }
-    </script>
-    
-    <script src="https://unpkg.com/occt-import-js@0.0.22/dist/occt-import-js.js"></script>
-    <script src="https://unpkg.com/@polar3d/gcode-viewer@1.0.0/dist/gcode-viewer.js"></script>
+    .hud-card {
+      min-width: 180px;
+      pointer-events: auto;
+      background: rgba(20,28,46,0.78);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 16px;
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(10px);
+      padding: 12px 14px;
+    }
+
+    .hud-title {
+      font-size: 0.77rem;
+      color: var(--muted);
+      margin-bottom: 6px;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .hud-value {
+      font-size: 0.96rem;
+      font-weight: 700;
+      line-height: 1.3;
+    }
+
+    .corner-tools {
+      position: absolute;
+      top: 18px;
+      right: 18px;
+      display: flex;
+      gap: 10px;
+      z-index: 5;
+      pointer-events: auto;
+    }
+
+    .btn, button {
+      appearance: none;
+      border: 1px solid var(--border);
+      background: linear-gradient(180deg, #18233A 0%, #111B30 100%);
+      color: var(--text);
+      padding: 10px 14px;
+      border-radius: 12px;
+      font-size: 0.92rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.15s ease, border-color 0.15s ease, background 0.15s ease, opacity 0.15s ease;
+      box-shadow: 0 8px 18px rgba(0,0,0,0.2);
+    }
+
+    .btn:hover, button:hover {
+      transform: translateY(-1px);
+      border-color: rgba(120,199,255,0.5);
+    }
+
+    .btn:active, button:active {
+      transform: translateY(0);
+    }
+
+    .btn.secondary {
+      background: rgba(255,255,255,0.04);
+      box-shadow: none;
+    }
+
+    .btn.active {
+      background: linear-gradient(180deg, #2368C4 0%, #124F9B 100%);
+      border-color: rgba(120,199,255,0.7);
+    }
+
+    .drop-overlay {
+      position: absolute;
+      inset: 0;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 8;
+      background: rgba(8, 12, 20, 0.78);
+      border: 2px dashed rgba(120,199,255,0.6);
+      backdrop-filter: blur(6px);
+    }
+
+    .drop-overlay.active {
+      display: flex;
+    }
+
+    .drop-card {
+      background: rgba(20,28,46,0.95);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 22px;
+      width: min(560px, calc(100% - 48px));
+      padding: 28px;
+      text-align: center;
+      box-shadow: var(--shadow);
+    }
+
+    .drop-card h2 {
+      margin: 0 0 10px;
+      font-size: 1.4rem;
+    }
+
+    .drop-card p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    .sidebar {
+      width: var(--sidebar-width);
+      min-width: var(--sidebar-width);
+      max-width: var(--sidebar-width);
+      height: 100%;
+      overflow-y: auto;
+      overflow-x: hidden;
+      padding: 16px;
+      border-left: 1px solid rgba(255,255,255,0.06);
+      background: linear-gradient(180deg, rgba(10,16,26,0.92) 0%, rgba(9,14,23,0.98) 100%);
+    }
+
+    .panel {
+      background: linear-gradient(180deg, var(--card) 0%, #111a2d 100%);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: var(--radius);
+      padding: 16px;
+      box-shadow: var(--shadow);
+      margin-bottom: 14px;
+    }
+
+    .panel h3 {
+      margin: 0 0 6px;
+      font-size: 1rem;
+    }
+
+    .panel .sub {
+      color: var(--muted);
+      font-size: 0.88rem;
+      line-height: 1.45;
+      margin-bottom: 14px;
+    }
+
+    .row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-bottom: 10px;
+    }
+
+    .field label {
+      color: var(--muted);
+      font-size: 0.82rem;
+      font-weight: 600;
+      letter-spacing: 0.01em;
+    }
+
+    .field input,
+    .field select {
+      width: 100%;
+      height: 42px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: var(--input);
+      color: var(--text);
+      padding: 0 12px;
+      outline: none;
+      font-size: 0.92rem;
+    }
+
+    .field input[type="color"] {
+      padding: 4px;
+      cursor: pointer;
+    }
+
+    .field small {
+      color: var(--muted);
+      font-size: 0.75rem;
+      line-height: 1.35;
+    }
+
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .toolbar .btn {
+      flex: 1 1 auto;
+      min-width: calc(50% - 4px);
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .stat {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.05);
+      border-radius: 14px;
+      padding: 12px;
+    }
+
+    .stat .k {
+      color: var(--muted);
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-bottom: 6px;
+    }
+
+    .stat .v {
+      font-size: 1rem;
+      font-weight: 700;
+      word-break: break-word;
+    }
+
+    .status {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 0.9rem;
+      color: var(--muted);
+      margin-top: 8px;
+      min-height: 22px;
+    }
+
+    .dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 999px;
+      background: var(--muted);
+      flex: 0 0 auto;
+    }
+
+    .dot.good { background: var(--good); }
+    .dot.warn { background: var(--warn); }
+    .dot.busy {
+      background: var(--accent);
+      box-shadow: 0 0 0 8px rgba(93,168,255,0.08);
+      animation: pulse 1.2s infinite ease-out;
+    }
+
+    @keyframes pulse {
+      0% { box-shadow: 0 0 0 0 rgba(93,168,255,0.22); }
+      100% { box-shadow: 0 0 0 12px rgba(93,168,255,0); }
+    }
+
+    .progress-wrap {
+      width: 100%;
+      height: 10px;
+      border-radius: 999px;
+      overflow: hidden;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.05);
+      margin-top: 10px;
+    }
+
+    .progress-bar {
+      width: 0%;
+      height: 100%;
+      background: linear-gradient(90deg, var(--accent), var(--accent2));
+      transition: width 0.15s linear;
+    }
+
+    .tiny {
+      font-size: 0.76rem;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    .powered {
+      margin-top: 10px;
+      padding: 10px 12px;
+      border-radius: 12px;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.05);
+      color: var(--muted);
+      font-size: 0.78rem;
+      line-height: 1.45;
+    }
+
+    #polarBranding {
+      position: absolute;
+      left: 18px;
+      bottom: 18px;
+      z-index: 6;
+      min-width: 120px;
+      pointer-events: auto;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    @media (max-width: 1100px) {
+      .sidebar {
+        width: 320px;
+        min-width: 320px;
+        max-width: 320px;
+      }
+    }
+
+    @media (max-width: 920px) {
+      .main {
+        flex-direction: column;
+      }
+      .viewer-pane {
+        min-height: 50vh;
+      }
+      .sidebar {
+        width: 100%;
+        min-width: 100%;
+        max-width: 100%;
+        height: 50vh;
+        border-left: none;
+        border-top: 1px solid rgba(255,255,255,0.06);
+      }
+    }
+  </style>
 </head>
 <body>
+  <div class="app">
+    <div class="topbar">
+      <div class="brand">
+        <div class="brand-badge">LW</div>
+        <div class="brand-copy">
+          <span>3D Print Configurator</span>
+          <small>WebGL + WASM in-browser viewer, painter, slicer</small>
+        </div>
+      </div>
 
-    <div id="topbar">
-        Shopify 3D Print Studio
+      <div class="topbar-actions">
+        <div class="pill" id="topStatus">No model loaded</div>
+      </div>
     </div>
 
-    <div id="main-container">
-        <div id="canvas-wrapper">
-            <div id="drop-overlay">Drop 3D Model Here</div>
-            <canvas id="webgl-canvas"></canvas>
+    <div class="main">
+      <section class="viewer-pane" id="viewerPane">
+        <div id="viewer" aria-label="3D Viewer"></div>
+
+        <div class="canvas-overlay-ui">
+          <div class="hud">
+            <div class="hud-card">
+              <div class="hud-title">Loaded File</div>
+              <div class="hud-value" id="loadedFilename">None</div>
+            </div>
+            <div class="hud-card">
+              <div class="hud-title">Interaction</div>
+              <div class="hud-value" id="interactionModeLabel">Orbit Camera</div>
+            </div>
+          </div>
+
+          <div class="corner-tools">
+            <button class="btn secondary" id="browseBtn" type="button">Upload Model</button>
+            <button class="btn secondary" id="fitViewBtn" type="button">Fit View</button>
+          </div>
         </div>
 
-        <div id="sidebar">
-            <div class="card">
-                <h3>File Upload</h3>
-                <input type="file" id="file-upload" accept=".stl,.obj,.3mf,.step,.stp" style="display: none;">
-                <button onclick="document.getElementById('file-upload').click()">Browse Files</button>
-            </div>
-
-            <div class="card">
-                <h3>Tools & Positioning</h3>
-                <div style="display: flex; gap: 10px;">
-                    <button id="btn-translate" class="active" style="flex: 1;">Move</button>
-                    <button id="btn-rotate" style="flex: 1;">Rotate</button>
-                </div>
-                <button id="btn-paint-mode" style="margin-top: 10px;">Toggle Paint Mode</button>
-                <div id="paint-tools" style="display: none; margin-top: 10px; gap: 10px; align-items: center;">
-                    <label>Color:</label>
-                    <input type="color" id="paint-color" value="#ff0000">
-                </div>
-            </div>
-
-            <div class="card">
-                <h3>Print Settings</h3>
-                <div class="form-group">
-                    <label>Layer Height (mm)</label>
-                    <input type="number" id="set-layer" value="0.2" step="0.04">
-                </div>
-                <div class="form-group">
-                    <label>Wall Loops</label>
-                    <input type="number" id="set-walls" value="3" step="1">
-                </div>
-                <div class="form-group">
-                    <label>Infill Density (%)</label>
-                    <input type="number" id="set-infill" value="15" step="1">
-                </div>
-                <div class="form-group">
-                    <label>Infill Pattern</label>
-                    <select id="set-pattern">
-                        <option value="grid">Grid</option>
-                        <option value="gyroid">Gyroid</option>
-                    </select>
-                </div>
-            </div>
-
-            <div class="card">
-                <h3>Material & Cost</h3>
-                <div class="form-group">
-                    <label>Material</label>
-                    <select id="set-material">
-                        <option value="1.24">PLA (1.24 g/cm³)</option>
-                        <option value="1.29">PETG (1.29 g/cm³)</option>
-                        <option value="1.19">TPU (1.19 g/cm³)</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Price per KG ($)</label>
-                    <input type="number" id="set-price" value="25.00" step="0.50">
-                </div>
-            </div>
-
-            <button id="btn-slice" style="padding: 15px; font-size: 1.1rem;">Slice & Estimate</button>
-
-            <div class="card" style="border: none; background: transparent;">
-                <div id="cost-estimation">Estimated Cost: $0.00</div>
-                <div id="log-output">Awaiting model...</div>
-            </div>
+        <div id="dropOverlay" class="drop-overlay">
+          <div class="drop-card">
+            <h2>Drop your 3D file here</h2>
+            <p>
+              Supported formats: STL, OBJ, 3MF, STEP/STP.<br />
+              The model will be centered on the build plate automatically.
+            </p>
+          </div>
         </div>
+
+        <div id="polarBranding"></div>
+
+        <input
+          id="fileInput"
+          type="file"
+          accept=".stl,.obj,.3mf,.step,.stp"
+          class="hidden"
+        />
+      </section>
+
+      <aside class="sidebar">
+        <div class="panel">
+          <h3>Model Controls</h3>
+          <div class="sub">Load a mesh, manipulate it on the plate, or switch into direct face painting mode.</div>
+
+          <div class="toolbar" style="margin-bottom:10px;">
+            <button class="btn" id="transformTranslateBtn" type="button">Translate</button>
+            <button class="btn secondary" id="transformRotateBtn" type="button">Rotate</button>
+          </div>
+
+          <div class="field">
+            <label for="paintToggle">Paint Mode</label>
+            <button class="btn secondary" id="paintToggle" type="button">Enable Paint Mode</button>
+          </div>
+
+          <div class="field">
+            <label for="paintColor">Paint Color</label>
+            <input id="paintColor" type="color" value="#ffffff" />
+            <small>When paint mode is active, clicking the mesh recolors the exact triangle you hit.</small>
+          </div>
+
+          <div class="field">
+            <label for="resetPaintBtn">Paint Utilities</label>
+            <div class="toolbar">
+              <button class="btn secondary" id="resetPaintBtn" type="button">Reset Colors</button>
+              <button class="btn secondary" id="recenterBtn" type="button">Recenter Model</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <h3>Slicing Settings</h3>
+          <div class="sub">These values are mapped into Cura Engine settings and sliced in a Web Worker.</div>
+
+          <div class="row">
+            <div class="field">
+              <label for="layerHeight">Layer Height (mm)</label>
+              <input id="layerHeight" type="number" step="0.01" min="0.04" max="0.4" value="0.20" />
+            </div>
+            <div class="field">
+              <label for="infillDensity">Infill Density (%)</label>
+              <input id="infillDensity" type="number" step="1" min="0" max="100" value="15" />
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="field">
+              <label for="topLayers">Top Layers</label>
+              <input id="topLayers" type="number" step="1" min="0" max="20" value="5" />
+            </div>
+            <div class="field">
+              <label for="bottomLayers">Bottom Layers</label>
+              <input id="bottomLayers" type="number" step="1" min="0" max="20" value="5" />
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="field">
+              <label for="wallLoops">Wall Loops</label>
+              <input id="wallLoops" type="number" step="1" min="1" max="10" value="3" />
+            </div>
+            <div class="field">
+              <label for="infillPattern">Infill Pattern</label>
+              <select id="infillPattern">
+                <option value="grid">Grid</option>
+                <option value="gyroid">Gyroid</option>
+                <option value="lines">Lines</option>
+                <option value="triangles">Triangles</option>
+                <option value="cubic">Cubic</option>
+                <option value="tetrahedral">Tetrahedral</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="material">Filament Material</label>
+            <select id="material">
+              <option value="PLA" data-density="1.24" selected>PLA — 1.24 g/cm³</option>
+              <option value="PETG" data-density="1.29">PETG — 1.29 g/cm³</option>
+              <option value="TPU" data-density="1.19">TPU — 1.19 g/cm³</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="pricePerKg">Price per kg (USD)</label>
+            <input id="pricePerKg" type="number" step="0.01" min="0" value="24.99" />
+          </div>
+
+          <div class="toolbar" style="margin-top:10px;">
+            <button class="btn" id="sliceBtn" type="button">Slice in Browser</button>
+            <button class="btn secondary" id="toolpathBtn" type="button">Show Toolpath</button>
+          </div>
+
+          <div class="status" id="sliceStatus">
+            <span class="dot" id="statusDot"></span>
+            <span id="statusText">Idle</span>
+          </div>
+          <div class="progress-wrap">
+            <div class="progress-bar" id="progressBar"></div>
+          </div>
+
+          <div class="powered">
+            Slicing uses Cura WASM inside a dedicated Web Worker so the main UI stays responsive. Toolpath rendering uses Polar3D G-code parsing/rendering.
+          </div>
+        </div>
+
+        <div class="panel">
+          <h3>Estimation</h3>
+          <div class="sub">Mass is computed from sliced extruded volume and selected material density. Cost uses the configured price per kilogram.</div>
+
+          <div class="stats-grid">
+            <div class="stat">
+              <div class="k">Size (mm)</div>
+              <div class="v" id="bboxStat">—</div>
+            </div>
+            <div class="stat">
+              <div class="k">Model Volume</div>
+              <div class="v" id="geomVolumeStat">—</div>
+            </div>
+            <div class="stat">
+              <div class="k">Print Time</div>
+              <div class="v" id="timeStat">—</div>
+            </div>
+            <div class="stat">
+              <div class="k">Extruded Volume</div>
+              <div class="v" id="extrudedVolumeStat">—</div>
+            </div>
+            <div class="stat">
+              <div class="k">Estimated Mass</div>
+              <div class="v" id="massStat">—</div>
+            </div>
+            <div class="stat">
+              <div class="k">Estimated Cost</div>
+              <div class="v" id="costStat">—</div>
+            </div>
+          </div>
+
+          <div class="tiny" style="margin-top:12px;" id="metadataDebug">
+            No slice metadata yet.
+          </div>
+        </div>
+
+        <div class="panel">
+          <h3>Notes</h3>
+          <div class="tiny">
+            This file is designed as a single-page app for GitHub Pages and Shopify iframe embedding. STEP import is handled with OCCT WebAssembly, Cura slicing is workerized, and the loaded mesh is immediately converted to non-indexed geometry so per-face painting can update exact triangle colors.
+          </div>
+        </div>
+      </aside>
     </div>
+  </div>
 
-    <script type="module">
-        import * as THREE from 'three';
-        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-        import { TransformControls } from 'three/addons/controls/TransformControls.js';
-        import { STLLoader } from 'three/addons/loaders/STLLoader.js';
-        import { OBJLoader } from 'three/addons/loaders/OBJLoader.js';
-        import { ThreeMFLoader } from 'three/addons/loaders/3MFLoader.js';
+  <script type="module">
+    import * as THREE from 'https://esm.sh/three@0.160.0';
+    import { OrbitControls } from 'https://esm.sh/three@0.160.0/examples/jsm/controls/OrbitControls.js';
+    import { TransformControls } from 'https://esm.sh/three@0.160.0/examples/jsm/controls/TransformControls.js';
+    import { STLLoader } from 'https://esm.sh/three@0.160.0/examples/jsm/loaders/STLLoader.js';
+    import { OBJLoader } from 'https://esm.sh/three@0.160.0/examples/jsm/loaders/OBJLoader.js';
+    import { ThreeMFLoader } from 'https://esm.sh/three@0.160.0/examples/jsm/loaders/3MFLoader.js';
+    import * as BufferGeometryUtils from 'https://esm.sh/three@0.160.0/examples/jsm/utils/BufferGeometryUtils.js';
+    import { GCodeViewer } from 'https://esm.sh/@polar3d/gcode-viewer?external=three';
 
-        // --- GLOBAL VARIABLES ---
-        let scene, camera, renderer;
-        let orbitControls, transformControls;
-        let currentMesh = null;
-        let isPaintMode = false;
-        const raycaster = new THREE.Raycaster();
-        const mouse = new THREE.Vector2();
+    // -------------------------------------------------------------------------
+    // DOM
+    // -------------------------------------------------------------------------
+    const viewerEl = document.getElementById('viewer');
+    const viewerPaneEl = document.getElementById('viewerPane');
+    const fileInputEl = document.getElementById('fileInput');
+    const browseBtnEl = document.getElementById('browseBtn');
+    const fitViewBtnEl = document.getElementById('fitViewBtn');
+    const dropOverlayEl = document.getElementById('dropOverlay');
+    const loadedFilenameEl = document.getElementById('loadedFilename');
+    const interactionModeLabelEl = document.getElementById('interactionModeLabel');
+    const topStatusEl = document.getElementById('topStatus');
 
-        // UI Elements
-        const logEl = document.getElementById('log-output');
-        const costEl = document.getElementById('cost-estimation');
-        const dropOverlay = document.getElementById('drop-overlay');
+    const transformTranslateBtnEl = document.getElementById('transformTranslateBtn');
+    const transformRotateBtnEl = document.getElementById('transformRotateBtn');
+    const paintToggleEl = document.getElementById('paintToggle');
+    const paintColorEl = document.getElementById('paintColor');
+    const resetPaintBtnEl = document.getElementById('resetPaintBtn');
+    const recenterBtnEl = document.getElementById('recenterBtn');
 
-        function log(msg) {
-            logEl.innerHTML += `> ${msg}<br>`;
-            logEl.scrollTop = logEl.scrollHeight;
+    const layerHeightEl = document.getElementById('layerHeight');
+    const topLayersEl = document.getElementById('topLayers');
+    const bottomLayersEl = document.getElementById('bottomLayers');
+    const wallLoopsEl = document.getElementById('wallLoops');
+    const infillDensityEl = document.getElementById('infillDensity');
+    const infillPatternEl = document.getElementById('infillPattern');
+    const materialEl = document.getElementById('material');
+    const pricePerKgEl = document.getElementById('pricePerKg');
+    const sliceBtnEl = document.getElementById('sliceBtn');
+    const toolpathBtnEl = document.getElementById('toolpathBtn');
+
+    const statusDotEl = document.getElementById('statusDot');
+    const statusTextEl = document.getElementById('statusText');
+    const progressBarEl = document.getElementById('progressBar');
+
+    const bboxStatEl = document.getElementById('bboxStat');
+    const geomVolumeStatEl = document.getElementById('geomVolumeStat');
+    const timeStatEl = document.getElementById('timeStat');
+    const extrudedVolumeStatEl = document.getElementById('extrudedVolumeStat');
+    const massStatEl = document.getElementById('massStat');
+    const costStatEl = document.getElementById('costStat');
+    const metadataDebugEl = document.getElementById('metadataDebug');
+    const polarBrandingEl = document.getElementById('polarBranding');
+
+    // -------------------------------------------------------------------------
+    // Scene
+    // -------------------------------------------------------------------------
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: true });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setSize(viewerEl.clientWidth, viewerEl.clientHeight);
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+    renderer.shadowMap.enabled = true;
+    viewerEl.appendChild(renderer.domElement);
+
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x080C14);
+
+    const camera = new THREE.PerspectiveCamera(45, viewerEl.clientWidth / viewerEl.clientHeight, 0.1, 5000);
+    camera.position.set(220, 180, 220);
+
+    const orbit = new OrbitControls(camera, renderer.domElement);
+    orbit.enableDamping = true;
+    orbit.dampingFactor = 0.08;
+    orbit.target.set(0, 30, 0);
+    orbit.screenSpacePanning = true;
+    orbit.minDistance = 20;
+    orbit.maxDistance = 1800;
+
+    const transformControls = new TransformControls(camera, renderer.domElement);
+    transformControls.setMode('translate');
+    transformControls.setSize(0.9);
+    scene.add(transformControls);
+
+    transformControls.addEventListener('dragging-changed', (event) => {
+      if (!state.paintMode) {
+        orbit.enabled = !event.value;
+      }
+      updateInteractionLabel();
+    });
+
+    const ambient = new THREE.AmbientLight(0xffffff, 1.2);
+    scene.add(ambient);
+
+    const dir1 = new THREE.DirectionalLight(0xffffff, 1.4);
+    dir1.position.set(150, 240, 100);
+    dir1.castShadow = true;
+    scene.add(dir1);
+
+    const dir2 = new THREE.DirectionalLight(0x7eb6ff, 0.9);
+    dir2.position.set(-220, 160, -140);
+    scene.add(dir2);
+
+    const grid = new THREE.GridHelper(256, 32, 0x355179, 0x22344f);
+    grid.position.y = 0;
+    scene.add(grid);
+
+    const plate = new THREE.Mesh(
+      new THREE.PlaneGeometry(256, 256),
+      new THREE.MeshStandardMaterial({
+        color: 0x0D1526,
+        metalness: 0.08,
+        roughness: 0.9,
+        transparent: true,
+        opacity: 0.78
+      })
+    );
+    plate.rotation.x = -Math.PI / 2;
+    plate.receiveShadow = true;
+    scene.add(plate);
+
+    const axis = new THREE.AxesHelper(60);
+    axis.position.set(-110, 0.02, -110);
+    scene.add(axis);
+
+    // -------------------------------------------------------------------------
+    // State
+    // -------------------------------------------------------------------------
+    const state = {
+      currentObject: null,
+      currentMesh: null,
+      originalColorHex: 0xd8dce5,
+      paintMode: false,
+      currentGcodeText: '',
+      currentGcodeObject: null,
+      currentSliceMetadata: null,
+      gcodeViewer: null,
+      worker: null,
+      busy: false
+    };
+
+    const stlLoader = new STLLoader();
+    const objLoader = new OBJLoader();
+    const threeMfLoader = new ThreeMFLoader();
+    const raycaster = new THREE.Raycaster();
+    const pointer = new THREE.Vector2();
+
+    // -------------------------------------------------------------------------
+    // Utility
+    // -------------------------------------------------------------------------
+    function setStatus(text, type = 'idle') {
+      statusTextEl.textContent = text;
+      statusDotEl.className = 'dot';
+      if (type === 'good') statusDotEl.classList.add('good');
+      if (type === 'warn') statusDotEl.classList.add('warn');
+      if (type === 'busy') statusDotEl.classList.add('busy');
+    }
+
+    function setProgress(percent) {
+      const clamped = Math.max(0, Math.min(100, Number(percent) || 0));
+      progressBarEl.style.width = clamped + '%';
+    }
+
+    function formatMm(num) {
+      if (!Number.isFinite(num)) return '—';
+      return `${num.toFixed(2)} mm`;
+    }
+
+    function formatMm3ToCm3(mm3) {
+      if (!Number.isFinite(mm3)) return '—';
+      return `${(mm3 / 1000).toFixed(2)} cm³`;
+    }
+
+    function formatTime(seconds) {
+      if (!Number.isFinite(seconds) || seconds <= 0) return '—';
+      const h = Math.floor(seconds / 3600);
+      const m = Math.floor((seconds % 3600) / 60);
+      const s = Math.floor(seconds % 60);
+      if (h > 0) return `${h}h ${m}m`;
+      if (m > 0) return `${m}m ${s}s`;
+      return `${s}s`;
+    }
+
+    function selectedMaterialDensity() {
+      const option = materialEl.options[materialEl.selectedIndex];
+      return parseFloat(option.dataset.density || '1.24');
+    }
+
+    function setTopStatus(text) {
+      topStatusEl.textContent = text;
+    }
+
+    function updateInteractionLabel() {
+      let mode = 'Orbit Camera';
+
+      if (state.paintMode) {
+        mode = 'Paint Triangles';
+      } else if (transformControls.dragging) {
+        mode = transformControls.mode === 'rotate' ? 'Rotating Model' : 'Moving Model';
+      } else if (state.currentMesh) {
+        mode = transformControls.mode === 'rotate' ? 'Rotate Model + Orbit' : 'Translate Model + Orbit';
+      }
+
+      interactionModeLabelEl.textContent = mode;
+      viewerEl.classList.toggle('painting', state.paintMode);
+    }
+
+    function resetEstimationUI() {
+      timeStatEl.textContent = '—';
+      extrudedVolumeStatEl.textContent = '—';
+      massStatEl.textContent = '—';
+      costStatEl.textContent = '—';
+      metadataDebugEl.textContent = 'No slice metadata yet.';
+    }
+
+    function clearToolpath() {
+      if (state.currentGcodeObject) {
+        scene.remove(state.currentGcodeObject);
+        disposeHierarchy(state.currentGcodeObject);
+        state.currentGcodeObject = null;
+      }
+      if (state.currentMesh) {
+        state.currentMesh.visible = true;
+      }
+    }
+
+    function disposeHierarchy(root) {
+      root.traverse((node) => {
+        if (node.geometry) node.geometry.dispose?.();
+        if (Array.isArray(node.material)) {
+          node.material.forEach((m) => m.dispose?.());
+        } else {
+          node.material?.dispose?.();
+        }
+      });
+    }
+
+    function applyDefaultVertexColors(geometry, hex = state.originalColorHex) {
+      const color = new THREE.Color(hex);
+      const position = geometry.getAttribute('position');
+      const colors = new Float32Array(position.count * 3);
+      for (let i = 0; i < position.count; i++) {
+        colors[i * 3 + 0] = color.r;
+        colors[i * 3 + 1] = color.g;
+        colors[i * 3 + 2] = color.b;
+      }
+      geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+    }
+
+    function buildColoredMaterial() {
+      return new THREE.MeshStandardMaterial({
+        vertexColors: true,
+        metalness: 0.08,
+        roughness: 0.72
+      });
+    }
+
+    function ensureNonIndexedGeometry(inputGeometry) {
+      let geometry = inputGeometry.clone();
+      if (geometry.index) {
+        geometry = geometry.toNonIndexed();
+      }
+      if (!geometry.getAttribute('normal')) {
+        geometry.computeVertexNormals();
+      }
+      if (!geometry.getAttribute('color')) {
+        applyDefaultVertexColors(geometry);
+      }
+      geometry.computeBoundingBox();
+      geometry.computeBoundingSphere();
+      return geometry;
+    }
+
+    function geometryVolumeMM3(geometry) {
+      const pos = geometry.getAttribute('position');
+      if (!pos) return 0;
+
+      let volume = 0;
+      const a = new THREE.Vector3();
+      const b = new THREE.Vector3();
+      const c = new THREE.Vector3();
+
+      for (let i = 0; i < pos.count; i += 3) {
+        a.fromBufferAttribute(pos, i + 0);
+        b.fromBufferAttribute(pos, i + 1);
+        c.fromBufferAttribute(pos, i + 2);
+        volume += a.dot(b.clone().cross(c)) / 6.0;
+      }
+      return Math.abs(volume);
+    }
+
+    function updateModelStats(geometry) {
+      geometry.computeBoundingBox();
+      const box = geometry.boundingBox;
+      if (!box) return;
+
+      const size = new THREE.Vector3();
+      box.getSize(size);
+
+      bboxStatEl.textContent = `${size.x.toFixed(1)} × ${size.y.toFixed(1)} × ${size.z.toFixed(1)}`;
+      geomVolumeStatEl.textContent = formatMm3ToCm3(geometryVolumeMM3(geometry));
+    }
+
+    function centerGeometryOnPlate(geometry) {
+      geometry.computeBoundingBox();
+      const box = geometry.boundingBox;
+      if (!box) return geometry;
+
+      const center = new THREE.Vector3();
+      box.getCenter(center);
+      geometry.translate(-center.x, -box.min.y, -center.z);
+      geometry.computeBoundingBox();
+      geometry.computeBoundingSphere();
+      return geometry;
+    }
+
+    function frameObject(object3D) {
+      const box = new THREE.Box3().setFromObject(object3D);
+      const size = box.getSize(new THREE.Vector3());
+      const center = box.getCenter(new THREE.Vector3());
+
+      const maxDim = Math.max(size.x, size.y, size.z, 1);
+      const fov = THREE.MathUtils.degToRad(camera.fov);
+      let distance = (maxDim / (2 * Math.tan(fov / 2))) * 1.65;
+      distance = Math.max(distance, 80);
+
+      const dir = new THREE.Vector3(1, 0.85, 1).normalize();
+      camera.position.copy(center.clone().add(dir.multiplyScalar(distance)));
+      orbit.target.copy(center);
+      camera.near = Math.max(0.1, distance / 100);
+      camera.far = Math.max(5000, distance * 10);
+      camera.updateProjectionMatrix();
+      orbit.update();
+    }
+
+    function setPaintMode(enabled) {
+      state.paintMode = enabled;
+      orbit.enabled = !enabled;
+      transformControls.enabled = !enabled;
+      paintToggleEl.classList.toggle('active', enabled);
+      paintToggleEl.classList.toggle('secondary', !enabled);
+      paintToggleEl.textContent = enabled ? 'Disable Paint Mode' : 'Enable Paint Mode';
+      updateInteractionLabel();
+    }
+
+    function setTransformMode(mode) {
+      transformControls.setMode(mode);
+      transformTranslateBtnEl.classList.toggle('active', mode === 'translate');
+      transformTranslateBtnEl.classList.toggle('secondary', mode !== 'translate');
+      transformRotateBtnEl.classList.toggle('active', mode === 'rotate');
+      transformRotateBtnEl.classList.toggle('secondary', mode !== 'rotate');
+      updateInteractionLabel();
+    }
+
+    function clearCurrentModel() {
+      clearToolpath();
+
+      if (state.currentObject) {
+        transformControls.detach();
+        scene.remove(state.currentObject);
+        disposeHierarchy(state.currentObject);
+      }
+
+      state.currentObject = null;
+      state.currentMesh = null;
+      state.currentSliceMetadata = null;
+      state.currentGcodeText = '';
+      loadedFilenameEl.textContent = 'None';
+      setTopStatus('No model loaded');
+      resetEstimationUI();
+    }
+
+    function setLoadedObject(rootObject, filename = 'Untitled') {
+      clearCurrentModel();
+
+      state.currentObject = rootObject;
+      scene.add(rootObject);
+
+      let candidateMesh = null;
+      rootObject.traverse((child) => {
+        if (!candidateMesh && child.isMesh) candidateMesh = child;
+      });
+
+      state.currentMesh = candidateMesh;
+      if (state.currentMesh) {
+        state.currentMesh.castShadow = true;
+        state.currentMesh.receiveShadow = true;
+        transformControls.attach(state.currentMesh);
+        updateModelStats(state.currentMesh.geometry);
+        frameObject(rootObject);
+      }
+
+      loadedFilenameEl.textContent = filename;
+      setTopStatus(filename);
+      setPaintMode(false);
+      setTransformMode('translate');
+      resetEstimationUI();
+      setStatus('Model loaded', 'good');
+      setProgress(0);
+    }
+
+    function mergedGeometryFromObject3D(object3D) {
+      object3D.updateMatrixWorld(true);
+
+      const geometries = [];
+      object3D.traverse((child) => {
+        if (!child.isMesh || !child.geometry) return;
+
+        let g = child.geometry.clone();
+        if (g.index) g = g.toNonIndexed();
+        g.applyMatrix4(child.matrixWorld);
+
+        const normal = g.getAttribute('normal');
+        if (!normal) g.computeVertexNormals();
+
+        geometries.push(g);
+      });
+
+      if (!geometries.length) {
+        throw new Error('No mesh geometry found in imported object.');
+      }
+
+      const merged = BufferGeometryUtils.mergeGeometries(geometries, false);
+      geometries.forEach((g) => g.dispose?.());
+      if (!merged) {
+        throw new Error('Failed to merge imported geometry.');
+      }
+      return merged;
+    }
+
+    function buildMeshFromGeometry(geometry) {
+      const finalGeometry = centerGeometryOnPlate(ensureNonIndexedGeometry(geometry));
+      const material = buildColoredMaterial();
+      const mesh = new THREE.Mesh(finalGeometry, material);
+      const group = new THREE.Group();
+      group.add(mesh);
+      return { group, mesh };
+    }
+
+    function parseOBJToMergedGeometry(text) {
+      const object = objLoader.parse(text);
+      return mergedGeometryFromObject3D(object);
+    }
+
+    async function parse3MFToMergedGeometry(arrayBuffer) {
+      const blob = new Blob([arrayBuffer]);
+      const url = URL.createObjectURL(blob);
+      try {
+        const object = await new Promise((resolve, reject) => {
+          threeMfLoader.load(url, resolve, undefined, reject);
+        });
+        return mergedGeometryFromObject3D(object);
+      } finally {
+        URL.revokeObjectURL(url);
+      }
+    }
+
+    async function parseSTEPToMergedGeometry(arrayBuffer) {
+      if (typeof occtimportjs !== 'function') {
+        throw new Error('occt-import-js failed to load.');
+      }
+
+      const occt = await occtimportjs({
+        locateFile: (path) => {
+          if (path.endsWith('.wasm')) {
+            return 'https://cdn.jsdelivr.net/npm/occt-import-js@0.0.24/dist/occt-import-js.wasm';
+          }
+          return path;
+        }
+      });
+
+      const result = occt.ReadStepFile(new Uint8Array(arrayBuffer), null);
+      if (!result || !result.success || !Array.isArray(result.meshes) || !result.meshes.length) {
+        throw new Error('STEP import failed or returned no mesh data.');
+      }
+
+      const geometries = [];
+
+      for (const meshData of result.meshes) {
+        const positions = meshData?.attributes?.position?.array || [];
+        const normals = meshData?.attributes?.normal?.array || [];
+        const indexArray = meshData?.index?.array || [];
+
+        if (!positions.length) continue;
+
+        const geometry = new THREE.BufferGeometry();
+        geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+
+        if (normals.length) {
+          geometry.setAttribute('normal', new THREE.Float32BufferAttribute(normals, 3));
         }
 
-        // --- INITIALIZATION ---
-        function init() {
-            const canvasWrapper = document.getElementById('canvas-wrapper');
-            const canvas = document.getElementById('webgl-canvas');
-
-            // Scene setup
-            scene = new THREE.Scene();
-            scene.background = new THREE.Color(0x080C14);
-
-            // Camera setup
-            camera = new THREE.PerspectiveCamera(45, canvasWrapper.clientWidth / canvasWrapper.clientHeight, 0.1, 1000);
-            camera.position.set(0, 200, 300);
-
-            // Renderer setup
-            renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true });
-            renderer.setSize(canvasWrapper.clientWidth, canvasWrapper.clientHeight);
-            renderer.setPixelRatio(window.devicePixelRatio);
-
-            // GridHelper (Bambu Lab simulated 256x256)
-            const gridHelper = new THREE.GridHelper(256, 25.6, 0x444444, 0x222222);
-            scene.add(gridHelper);
-
-            // Lighting
-            const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
-            scene.add(ambientLight);
-            const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
-            dirLight.position.set(100, 200, 100);
-            scene.add(dirLight);
-
-            // Controls
-            orbitControls = new OrbitControls(camera, renderer.domElement);
-            orbitControls.enableDamping = true;
-
-            transformControls = new TransformControls(camera, renderer.domElement);
-            transformControls.addEventListener('dragging-changed', function (event) {
-                // Disable orbit controls when dragging object
-                orbitControls.enabled = !event.value;
-            });
-            scene.add(transformControls);
-
-            // Event Listeners
-            window.addEventListener('resize', onWindowResize);
-            setupFileIngestion(canvasWrapper);
-            setupUIControls();
-            setupPainting();
-
-            // Animation Loop
-            renderer.setAnimationLoop(animate);
-        }
-
-        function animate() {
-            orbitControls.update();
-            renderer.render(scene, camera);
-        }
-
-        function onWindowResize() {
-            const canvasWrapper = document.getElementById('canvas-wrapper');
-            camera.aspect = canvasWrapper.clientWidth / canvasWrapper.clientHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(canvasWrapper.clientWidth, canvasWrapper.clientHeight);
-        }
-
-        // --- FILE INGESTION & PARSING ---
-        function setupFileIngestion(wrapper) {
-            // Drag and Drop
-            wrapper.addEventListener('dragover', (e) => {
-                e.preventDefault();
-                dropOverlay.classList.add('active');
-            });
-            wrapper.addEventListener('dragleave', (e) => {
-                e.preventDefault();
-                dropOverlay.classList.remove('active');
-            });
-            wrapper.addEventListener('drop', (e) => {
-                e.preventDefault();
-                dropOverlay.classList.remove('active');
-                if (e.dataTransfer.files.length > 0) {
-                    processFile(e.dataTransfer.files[0]);
-                }
-            });
-
-            // Input File
-            document.getElementById('file-upload').addEventListener('change', (e) => {
-                if (e.target.files.length > 0) {
-                    processFile(e.target.files[0]);
-                }
-            });
-        }
-
-        async function processFile(file) {
-            log(`Loading: ${file.name}...`);
-            const extension = file.name.split('.').pop().toLowerCase();
-            const reader = new FileReader();
-
-            reader.onload = async (e) => {
-                const contents = e.target.result;
-                let geometry = null;
-
-                try {
-                    switch (extension) {
-                        case 'stl':
-                            const stlLoader = new STLLoader();
-                            geometry = stlLoader.parse(contents);
-                            break;
-                        case 'obj':
-                            const objLoader = new OBJLoader();
-                            const obj = objLoader.parse(contents);
-                            // Combine OBJ children into a single geometry for simplicity
-                            const geometries = [];
-                            obj.traverse((child) => {
-                                if (child.isMesh) geometries.push(child.geometry);
-                            });
-                            // Rough merge fallback (assuming single mesh for this setup)
-                            if (geometries.length > 0) geometry = geometries[0];
-                            break;
-                        case '3mf':
-                            const threeMFLoader = new ThreeMFLoader();
-                            const group = threeMFLoader.parse(contents);
-                            group.traverse((child) => {
-                                if (child.isMesh && !geometry) geometry = child.geometry;
-                            });
-                            break;
-                        case 'step':
-                        case 'stp':
-                            log(`Initializing occt-import-js for STEP...`);
-                            // Assuming global occtimportjs from CDN
-                            const occt = await occtimportjs();
-                            // file is read as ArrayBuffer for step
-                            const stepResult = occt.ReadStepFile(new Uint8Array(contents), null);
-                            if(stepResult && stepResult.meshes.length > 0) {
-                                // Reconstruct ThreeJS geometry from raw arrays
-                                const m = stepResult.meshes[0];
-                                geometry = new THREE.BufferGeometry();
-                                geometry.setAttribute('position', new THREE.Float32BufferAttribute(m.attributes.position.array, 3));
-                                if(m.index) geometry.setIndex(new THREE.Uint32BufferAttribute(m.index.array, 1));
-                            }
-                            break;
-                        default:
-                            log(`Unsupported format: ${extension}`);
-                            return;
-                    }
-
-                    if (geometry) {
-                        setupMesh(geometry);
-                    } else {
-                        log("Failed to extract geometry.");
-                    }
-                } catch (err) {
-                    log(`Error parsing file: ${err.message}`);
-                }
-            };
-
-            if (['step', 'stp', 'stl'].includes(extension)) {
-                reader.readAsArrayBuffer(file);
+        if (indexArray.length) {
+          const flatIndices = [];
+          for (const tri of indexArray) {
+            if (Array.isArray(tri)) {
+              flatIndices.push(tri[0], tri[1], tri[2]);
             } else {
-                reader.readAsText(file);
+              flatIndices.push(tri);
             }
+          }
+          geometry.setIndex(flatIndices);
         }
 
-        function setupMesh(geometry) {
-            if (currentMesh) {
-                scene.remove(currentMesh);
-                transformControls.detach();
-                if(currentMesh.geometry) currentMesh.geometry.dispose();
-                if(currentMesh.material) currentMesh.material.dispose();
+        let finalGeometry = geometry;
+        if (finalGeometry.index) {
+          finalGeometry = finalGeometry.toNonIndexed();
+          geometry.dispose?.();
+        }
+
+        if (!finalGeometry.getAttribute('normal')) {
+          finalGeometry.computeVertexNormals();
+        }
+
+        geometries.push(finalGeometry);
+      }
+
+      if (!geometries.length) {
+        throw new Error('STEP file produced no valid geometry.');
+      }
+
+      const merged = BufferGeometryUtils.mergeGeometries(geometries, false);
+      geometries.forEach((g) => g.dispose?.());
+
+      if (!merged) {
+        throw new Error('Failed to merge STEP geometry.');
+      }
+
+      return merged;
+    }
+
+    // -------------------------------------------------------------------------
+    // STL export for slicing
+    // -------------------------------------------------------------------------
+    function meshToBinarySTLArrayBuffer(mesh) {
+      mesh.updateMatrixWorld(true);
+
+      const source = mesh.geometry.index ? mesh.geometry.toNonIndexed() : mesh.geometry.clone();
+      const geometry = source.clone();
+      geometry.applyMatrix4(mesh.matrixWorld);
+
+      const pos = geometry.getAttribute('position');
+      const normalAttr = geometry.getAttribute('normal');
+      const triCount = Math.floor(pos.count / 3);
+
+      const buffer = new ArrayBuffer(84 + triCount * 50);
+      const view = new DataView(buffer);
+
+      for (let i = 0; i < 80; i++) view.setUint8(i, 0);
+      view.setUint32(80, triCount, true);
+
+      const a = new THREE.Vector3();
+      const b = new THREE.Vector3();
+      const c = new THREE.Vector3();
+      const n = new THREE.Vector3();
+
+      let offset = 84;
+
+      for (let i = 0; i < pos.count; i += 3) {
+        if (normalAttr) {
+          n.set(
+            normalAttr.getX(i),
+            normalAttr.getY(i),
+            normalAttr.getZ(i)
+          ).normalize();
+        } else {
+          a.fromBufferAttribute(pos, i + 0);
+          b.fromBufferAttribute(pos, i + 1);
+          c.fromBufferAttribute(pos, i + 2);
+          n.subVectors(c, b).cross(a.clone().sub(b)).normalize();
+        }
+
+        view.setFloat32(offset + 0, n.x, true);
+        view.setFloat32(offset + 4, n.y, true);
+        view.setFloat32(offset + 8, n.z, true);
+
+        for (let v = 0; v < 3; v++) {
+          const idx = i + v;
+          view.setFloat32(offset + 12 + v * 12 + 0, pos.getX(idx), true);
+          view.setFloat32(offset + 12 + v * 12 + 4, pos.getY(idx), true);
+          view.setFloat32(offset + 12 + v * 12 + 8, pos.getZ(idx), true);
+        }
+
+        view.setUint16(offset + 48, 0, true);
+        offset += 50;
+      }
+
+      geometry.dispose?.();
+      if (source !== mesh.geometry) source.dispose?.();
+
+      return buffer;
+    }
+
+    // -------------------------------------------------------------------------
+    // G-code toolpath
+    // -------------------------------------------------------------------------
+    function buildGCodeViewer() {
+      if (state.gcodeViewer) return state.gcodeViewer;
+
+      state.gcodeViewer = new GCodeViewer({
+        container: polarBrandingEl,
+        renderTubes: true,
+        hidePurgeLines: true,
+        colorScheme: 'pathType',
+        showTravelMoves: false,
+        extrusionWidth: 0.4,
+        lineHeight: parseFloat(layerHeightEl.value || '0.2'),
+        radialSegments: 4
+      });
+
+      return state.gcodeViewer;
+    }
+
+    function showToolpathFromGcode(gcodeText) {
+      if (!gcodeText) {
+        throw new Error('No G-code available. Slice the model first.');
+      }
+
+      clearToolpath();
+
+      const viewer = buildGCodeViewer();
+      if (viewer.setContainer) viewer.setContainer(polarBrandingEl);
+
+      if (viewer.dispose) {
+        // dispose only the internal materials/objects; keep instance live
+        try { viewer.dispose(); } catch {}
+      }
+
+      const result = viewer.parse(gcodeText);
+      state.currentGcodeObject = result.object;
+      scene.add(state.currentGcodeObject);
+
+      if (state.currentMesh) {
+        state.currentMesh.visible = false;
+      }
+
+      frameObject(state.currentGcodeObject);
+      setStatus('Toolpath displayed', 'good');
+    }
+
+    // -------------------------------------------------------------------------
+    // Slice worker
+    // -------------------------------------------------------------------------
+    function buildSliceWorker() {
+      const workerCode = `
+        import { CuraWASM } from 'https://esm.sh/cura-wasm?bundle';
+        import { resolveDefinition } from 'https://esm.sh/cura-wasm-definitions?bundle';
+
+        let slicer = null;
+
+        function post(type, payload = {}) {
+          self.postMessage({ type, ...payload });
+        }
+
+        self.onmessage = async (event) => {
+          const data = event.data || {};
+
+          if (data.type !== 'slice') return;
+
+          try {
+            const settings = data.settings || {};
+            const layerHeight = Number(settings.layerHeight ?? 0.2);
+            const infillDensity = Number(settings.infillDensity ?? 15);
+            const topLayers = Number(settings.topLayers ?? 5);
+            const bottomLayers = Number(settings.bottomLayers ?? 5);
+            const wallLoops = Number(settings.wallLoops ?? 3);
+            const infillPattern = String(settings.infillPattern ?? 'grid');
+
+            if (slicer) {
+              try { slicer.dispose(); } catch {}
+              slicer = null;
             }
 
-            // 1. Convert to non-indexed for face painting
-            geometry = geometry.toNonIndexed();
-            geometry.computeVertexNormals();
-            geometry.center(); // Center on build plate
+            slicer = new CuraWASM({
+              definition: resolveDefinition('ultimaker2'),
+              overrides: [
+                { key: 'machine_width', value: 256 },
+                { key: 'machine_depth', value: 256 },
+                { key: 'machine_height', value: 256 },
 
-            // 2. Setup Default Vertex Colors
-            const count = geometry.attributes.position.count;
-            const colors = new Float32Array(count * 3);
-            for (let i = 0; i < count * 3; i++) {
-                colors[i] = 0.8; // Default light grey
-            }
-            geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+                { key: 'layer_height', value: layerHeight },
+                { key: 'layer_height_0', value: Math.max(layerHeight, 0.2) },
+                { key: 'infill_sparse_density', value: infillDensity },
+                { key: 'top_layers', value: topLayers },
+                { key: 'bottom_layers', value: bottomLayers },
+                { key: 'wall_line_count', value: wallLoops },
+                { key: 'infill_pattern', value: infillPattern },
 
-            // 3. Create Mesh
-            const material = new THREE.MeshStandardMaterial({
-                vertexColors: true,
-                roughness: 0.5,
-                metalness: 0.1,
-                side: THREE.DoubleSide
+                { scope: 'e0', key: 'material_diameter', value: 1.75 },
+                { scope: 'e0', key: 'speed_print', value: 50 },
+                { scope: 'e0', key: 'speed_infill', value: 60 },
+                { scope: 'e0', key: 'speed_wall', value: 35 },
+                { scope: 'e0', key: 'speed_topbottom', value: 30 },
+                { scope: 'e0', key: 'material_print_temperature', value: 205 },
+                { scope: 'e0', key: 'material_bed_temperature', value: 60 },
+                { scope: 'e0', key: 'skirt_line_count', value: 0 },
+                { scope: 'e0', key: 'support_enable', value: false }
+              ],
+              transfer: true,
+              verbose: false
             });
 
-            currentMesh = new THREE.Mesh(geometry, material);
-            
-            // Align bottom to grid
-            currentMesh.geometry.computeBoundingBox();
-            const bbox = currentMesh.geometry.boundingBox;
-            currentMesh.position.y = Math.abs(bbox.min.y);
-
-            scene.add(currentMesh);
-            transformControls.attach(currentMesh);
-            log("Model loaded successfully.");
-        }
-
-        // --- CAMERA, CONTROLS & UI ---
-        function setupUIControls() {
-            const btnTranslate = document.getElementById('btn-translate');
-            const btnRotate = document.getElementById('btn-rotate');
-            const btnPaint = document.getElementById('btn-paint-mode');
-            const paintTools = document.getElementById('paint-tools');
-            
-            btnTranslate.addEventListener('click', () => {
-                if(isPaintMode) return;
-                transformControls.setMode('translate');
-                btnTranslate.classList.add('active');
-                btnRotate.classList.remove('active');
+            slicer.on('progress', (percent) => {
+              post('progress', { percent });
             });
 
-            btnRotate.addEventListener('click', () => {
-                if(isPaintMode) return;
-                transformControls.setMode('rotate');
-                btnRotate.classList.add('active');
-                btnTranslate.classList.remove('active');
-            });
+            const result = await slicer.slice(data.stl, 'stl');
+            const gcodeBuffer = result?.gcode;
+            const metadata = result?.metadata || {};
 
-            btnPaint.addEventListener('click', () => {
-                isPaintMode = !isPaintMode;
-                if (isPaintMode) {
-                    btnPaint.classList.add('active');
-                    paintTools.style.display = 'flex';
-                    transformControls.detach();
-                    orbitControls.enabled = false;
-                    log("Paint Mode: ON. Click faces to paint.");
-                } else {
-                    btnPaint.classList.remove('active');
-                    paintTools.style.display = 'none';
-                    if(currentMesh) transformControls.attach(currentMesh);
-                    orbitControls.enabled = true;
-                    log("Paint Mode: OFF.");
-                }
-            });
-
-            document.getElementById('btn-slice').addEventListener('click', initiateSlicing);
-        }
-
-        // --- MULTI-COLOR PAINTING (RAYCASTING) ---
-        function setupPainting() {
-            const canvasWrapper = document.getElementById('canvas-wrapper');
-            const paintColorInput = document.getElementById('paint-color');
-
-            canvasWrapper.addEventListener('pointerdown', (e) => {
-                if (!isPaintMode || !currentMesh) return;
-
-                const rect = renderer.domElement.getBoundingClientRect();
-                mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
-                mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
-
-                raycaster.setFromCamera(mouse, camera);
-                const intersects = raycaster.intersectObject(currentMesh);
-
-                if (intersects.length > 0) {
-                    const intersect = intersects[0];
-                    const face = intersect.face;
-                    const colorAttr = currentMesh.geometry.attributes.color;
-
-                    const color = new THREE.Color(paintColorInput.value);
-
-                    // Because geometry is non-indexed, face.a/b/c are direct indices into the attributes
-                    colorAttr.setXYZ(face.a, color.r, color.g, color.b);
-                    colorAttr.setXYZ(face.b, color.r, color.g, color.b);
-                    colorAttr.setXYZ(face.c, color.r, color.g, color.b);
-
-                    colorAttr.needsUpdate = true;
-                }
-            });
-        }
-
-        // --- SLICING ENGINE (WEB WORKER) & ESTIMATION ---
-        function initiateSlicing() {
-            if (!currentMesh) {
-                log("No model loaded to slice.");
-                return;
+            let gcodeText = '';
+            if (gcodeBuffer instanceof ArrayBuffer) {
+              gcodeText = new TextDecoder().decode(gcodeBuffer);
+            } else if (ArrayBuffer.isView(gcodeBuffer)) {
+              gcodeText = new TextDecoder().decode(gcodeBuffer);
+            } else if (typeof gcodeBuffer === 'string') {
+              gcodeText = gcodeBuffer;
             }
 
-            log("Preparing to slice...");
-            const layerHeight = document.getElementById('set-layer').value;
-            const walls = document.getElementById('set-walls').value;
-            const infill = document.getElementById('set-infill').value;
-            const pattern = document.getElementById('set-pattern').value;
-
-            // Extract STL from currentMesh to send to worker
-            // Since we need to pass a valid STL ArrayBuffer to cura-wasm
-            // Note: writing a basic STL exporter for the current BufferGeometry
-            const stlBuffer = exportBinarySTL(currentMesh.geometry);
-
-            // Constructing the inline worker code
-            const workerCode = `
-                importScripts('https://unpkg.com/cura-wasm@1.1.0/dist/cura-wasm.js');
-                
-                self.onmessage = async (e) => {
-                    const { stlBuffer, layerHeight, walls, infill } = e.data;
-                    try {
-                        // NOTE: In a true production app, cura-wasm needs definitions/WASM loaded from correct relative paths.
-                        // This CDN script attempt might fail fetching internal .wasm files based on unpkg's routing.
-                        const slicer = new CuraWASM({
-                            command: \`slice -j definitions/fdmprinter.def.json -s layer_height=\${layerHeight} -s infill_sparse_density=\${infill} -s wall_line_count=\${walls} -l model.stl -o result.gcode\`
-                        });
-
-                        // Slicer requires file systems injection in standard implementations
-                        // For the sake of this single-file requirement, we simulate the run:
-                        /* slicer.FS.writeFile('model.stl', new Uint8Array(stlBuffer));
-                        await slicer.run();
-                        const gcode = slicer.FS.readFile('result.gcode', { encoding: 'utf8' });
-                        */
-                        
-                        // Because of strict CDN limitations on fetching unbundled binary WASM files,
-                        // we return a mock GCODE block here to demonstrate the toolpath visualization
-                        // seamlessly without throwing a CORS/Fetch error on the user's browser.
-                        const mockGcode = \`
-;FLAVOR:Marlin
-;Mock Gcode for visualization
-G90
-G92 E0
-G1 Z0.2 F3000
-G1 X100 Y100 E1.0 F1500
-G1 X150 Y100 E2.0
-G1 X150 Y150 E3.0
-G1 X100 Y150 E4.0
-G1 X100 Y100 E5.0
-;End
-                        \`;
-
-                        self.postMessage({ success: true, gcode: mockGcode, volumeExtruded: 5432.1 });
-                    } catch (err) {
-                        self.postMessage({ success: false, error: err.message });
-                    }
-                };
-            `;
-
-            const blob = new Blob([workerCode], { type: 'application/javascript' });
-            const worker = new Worker(URL.createObjectURL(blob));
-
-            worker.onmessage = (e) => {
-                if (e.data.success) {
-                    log("Slicing complete. Visualizing G-code...");
-                    visualizeGcode(e.data.gcode);
-                    calculateCost(e.data.volumeExtruded); // Mock volume in mm^3
-                } else {
-                    log(`Slicer Error: ${e.data.error}`);
-                }
-            };
-
-            worker.postMessage({ 
-                stlBuffer: stlBuffer,
-                layerHeight: layerHeight,
-                walls: walls,
-                infill: infill
-            });
-        }
-
-        // Helper: Quick Binary STL Exporter to convert geometry for slicer
-        function exportBinarySTL(geometry) {
-            const pos = geometry.attributes.position.array;
-            const faces = pos.length / 9;
-            const buffer = new ArrayBuffer(84 + (faces * 50));
-            const view = new DataView(buffer);
-            let offset = 84; // Skip 80 byte header + 4 byte face count
-            view.setUint32(80, faces, true);
-
-            for (let i = 0; i < pos.length; i += 9) {
-                // Write normal (mock 0,0,0)
-                view.setFloat32(offset, 0, true); offset += 4;
-                view.setFloat32(offset, 0, true); offset += 4;
-                view.setFloat32(offset, 0, true); offset += 4;
-                // V1, V2, V3
-                for(let v=0; v<9; v++) {
-                    view.setFloat32(offset, pos[i+v], true); offset += 4;
-                }
-                view.setUint16(offset, 0, true); offset += 2; // Attribute byte count
-            }
-            return buffer;
-        }
-
-        function calculateCost(volumeMm3) {
-            const density = parseFloat(document.getElementById('set-material').value);
-            const pricePerKg = parseFloat(document.getElementById('set-price').value);
-
-            // Volume (mm³) to cm³ -> divide by 1000
-            const volumeCm3 = volumeMm3 / 1000;
-            // Mass in grams = volume * density
-            const massGrams = volumeCm3 * density;
-            // Cost = (mass / 1000) * pricePerKg
-            const cost = (massGrams / 1000) * pricePerKg;
-
-            costEl.innerText = `Estimated Cost: $${cost.toFixed(2)}`;
-            log(`Calculated Mass: ${massGrams.toFixed(2)}g`);
-        }
-
-        // --- TOOLPATH VISUALIZATION ---
-        function visualizeGcode(gcodeString) {
-            // Hide the original mesh
-            if (currentMesh) currentMesh.visible = false;
-
-            // Using Polar3D GCode Viewer
-            // Assuming global `GCodeViewer` exposed by the CDN script
-            try {
-                if (window.GCodeViewer) {
-                    const viewer = new window.GCodeViewer({
-                        canvas: document.getElementById('webgl-canvas'),
-                        renderTubes: true,
-                        // ... passing existing three.js context references if the library supports it,
-                        // otherwise we parse locally and build the tubes.
-                    });
-                    // Because the external viewer might hijack the canvas, a safer ThreeJS native way
-                    // for a single file is to parse the coordinates from the mock string and draw LineSegments
-                    buildNativeToolpath(gcodeString);
-                } else {
-                    buildNativeToolpath(gcodeString);
-                }
-            } catch (err) {
-                log("Fallback to native line rendering...");
-                buildNativeToolpath(gcodeString);
-            }
-        }
-
-        function buildNativeToolpath(gcode) {
-            // Very basic Gcode to Line segment parser for visual confirmation
-            const lines = gcode.split('\n');
-            const points = [];
-            let currentX = 0, currentY = 0, currentZ = 0;
-
-            lines.forEach(line => {
-                if (line.startsWith('G1')) {
-                    const parts = line.split(' ');
-                    let hasMove = false;
-                    parts.forEach(p => {
-                        if (p.startsWith('X')) { currentX = parseFloat(p.substring(1)); hasMove = true; }
-                        if (p.startsWith('Y')) { currentY = parseFloat(p.substring(1)); hasMove = true; }
-                        if (p.startsWith('Z')) { currentZ = parseFloat(p.substring(1)); hasMove = true; }
-                    });
-                    if (hasMove) points.push(new THREE.Vector3(currentX - 128, currentZ, currentY - 128)); // Shift to center grid
-                }
+            post('done', {
+              gcodeText,
+              metadata
             });
 
-            if (points.length > 0) {
-                const geometry = new THREE.BufferGeometry().setFromPoints(points);
-                const material = new THREE.LineBasicMaterial({ color: 0x3b82f6, linewidth: 2 });
-                const lineMesh = new THREE.Line(geometry, material);
-                scene.add(lineMesh);
-                log("Toolpath rendered.");
-            }
+            try { slicer.dispose(); } catch {}
+            slicer = null;
+          } catch (error) {
+            post('error', {
+              message: error?.message || String(error)
+            });
+            try { slicer?.dispose(); } catch {}
+            slicer = null;
+          }
+        };
+      `;
+
+      const blob = new Blob([workerCode], { type: 'text/javascript' });
+      const url = URL.createObjectURL(blob);
+      return new Worker(url, { type: 'module' });
+    }
+
+    function extractExtrudedVolumeCm3(metadata) {
+      if (!metadata || typeof metadata !== 'object') return NaN;
+
+      const candidates = [
+        metadata.extrudedVolume,
+        metadata.extruded_volume,
+        metadata.volume,
+        metadata.printVolume,
+        metadata.print_volume,
+        metadata.filamentVolume,
+        metadata.filament_volume,
+        metadata?.filament?.volume,
+        metadata?.filament?.extrudedVolume,
+        metadata?.filament?.extruded_volume
+      ];
+
+      for (const candidate of candidates) {
+        if (Number.isFinite(candidate)) {
+          return Number(candidate);
+        }
+      }
+
+      // Fallback: derive from filament length and diameter if present.
+      const filamentLengthMm =
+        metadata.filamentUsed ??
+        metadata.filament_used ??
+        metadata?.filament?.used ??
+        metadata?.filament?.length ??
+        metadata?.filament_length;
+
+      const filamentDiameterMm =
+        metadata.filamentDiameter ??
+        metadata.filament_diameter ??
+        metadata?.filament?.diameter ??
+        1.75;
+
+      if (Number.isFinite(filamentLengthMm) && Number.isFinite(filamentDiameterMm)) {
+        const radiusMm = Number(filamentDiameterMm) / 2;
+        const volumeMm3 = Math.PI * radiusMm * radiusMm * Number(filamentLengthMm);
+        return volumeMm3 / 1000; // mm^3 -> cm^3
+      }
+
+      return NaN;
+    }
+
+    function extractEstimatedSeconds(metadata, gcodeText) {
+      const candidates = [
+        metadata?.estimatedTime,
+        metadata?.estimated_time,
+        metadata?.printTime,
+        metadata?.print_time,
+        metadata?.time
+      ];
+
+      for (const candidate of candidates) {
+        if (Number.isFinite(candidate)) return Number(candidate);
+      }
+
+      // Fallback parse from G-code comments if available.
+      if (typeof gcodeText === 'string') {
+        const m =
+          gcodeText.match(/;TIME:(\d+)/) ||
+          gcodeText.match(/estimated printing time[^\\d]*(\\d+)/i);
+        if (m) return Number(m[1]);
+      }
+
+      return NaN;
+    }
+
+    async function runSlice() {
+      if (!state.currentMesh) {
+        setStatus('Load a model before slicing.', 'warn');
+        return;
+      }
+
+      if (state.busy) return;
+
+      try {
+        clearToolpath();
+        state.busy = true;
+        setStatus('Preparing STL for slicing…', 'busy');
+        setProgress(2);
+
+        const stlBuffer = meshToBinarySTLArrayBuffer(state.currentMesh);
+
+        const settings = {
+          layerHeight: parseFloat(layerHeightEl.value || '0.2'),
+          topLayers: parseInt(topLayersEl.value || '5', 10),
+          bottomLayers: parseInt(bottomLayersEl.value || '5', 10),
+          wallLoops: parseInt(wallLoopsEl.value || '3', 10),
+          infillDensity: parseFloat(infillDensityEl.value || '15'),
+          infillPattern: infillPatternEl.value,
+          material: materialEl.value
+        };
+
+        if (state.worker) {
+          state.worker.terminate();
+          state.worker = null;
         }
 
-        // Initialize App
-        window.onload = init;
-    </script>
+        state.worker = buildSliceWorker();
+
+        const result = await new Promise((resolve, reject) => {
+          state.worker.onmessage = (event) => {
+            const msg = event.data || {};
+            if (msg.type === 'progress') {
+              setStatus(\`Slicing… \${Math.round(msg.percent || 0)}%\`, 'busy');
+              setProgress(msg.percent || 0);
+            } else if (msg.type === 'done') {
+              resolve(msg);
+            } else if (msg.type === 'error') {
+              reject(new Error(msg.message || 'Unknown worker error'));
+            }
+          };
+
+          state.worker.onerror = (err) => {
+            reject(new Error(err.message || 'Worker failed'));
+          };
+
+          state.worker.postMessage({ type: 'slice', stl: stlBuffer, settings }, [stlBuffer]);
+        });
+
+        setProgress(100);
+        setStatus('Slice complete', 'good');
+
+        state.currentGcodeText = result.gcodeText || '';
+        state.currentSliceMetadata = result.metadata || {};
+
+        const volumeCm3 = extractExtrudedVolumeCm3(state.currentSliceMetadata);
+        const density = selectedMaterialDensity();
+        const massG = Number.isFinite(volumeCm3) ? volumeCm3 * density : NaN;
+        const massKg = Number.isFinite(massG) ? massG / 1000 : NaN;
+        const pricePerKg = parseFloat(pricePerKgEl.value || '0');
+        const cost = Number.isFinite(massKg) ? massKg * pricePerKg : NaN;
+        const seconds = extractEstimatedSeconds(state.currentSliceMetadata, state.currentGcodeText);
+
+        timeStatEl.textContent = formatTime(seconds);
+        extrudedVolumeStatEl.textContent = Number.isFinite(volumeCm3) ? `${volumeCm3.toFixed(2)} cm³` : '—';
+        massStatEl.textContent = Number.isFinite(massG) ? `${massG.toFixed(2)} g` : '—';
+        costStatEl.textContent = Number.isFinite(cost) ? `$${cost.toFixed(2)}` : '—';
+        metadataDebugEl.textContent = JSON.stringify(state.currentSliceMetadata, null, 2);
+
+      } catch (error) {
+        console.error(error);
+        setStatus(\`Slice failed: \${error.message}\`, 'warn');
+        setProgress(0);
+      } finally {
+        state.busy = false;
+      }
+    }
+
+    // -------------------------------------------------------------------------
+    // Painting
+    // -------------------------------------------------------------------------
+    function paintIntersectedFace(event) {
+      if (!state.paintMode || !state.currentMesh) return;
+
+      const rect = renderer.domElement.getBoundingClientRect();
+      pointer.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+      pointer.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+
+      raycaster.setFromCamera(pointer, camera);
+
+      const hits = raycaster.intersectObject(state.currentMesh, false);
+      if (!hits.length) return;
+
+      const hit = hits[0];
+      const geometry = state.currentMesh.geometry;
+      const colorAttr = geometry.getAttribute('color');
+      if (!colorAttr) return;
+
+      const pickedColor = new THREE.Color(paintColorEl.value);
+
+      let baseIndex = -1;
+      if (Number.isFinite(hit.faceIndex)) {
+        baseIndex = hit.faceIndex * 3;
+      } else if (hit.face) {
+        baseIndex = hit.face.a;
+      }
+
+      if (baseIndex < 0) return;
+
+      for (let i = 0; i < 3; i++) {
+        const vertexIndex = baseIndex + i;
+        colorAttr.setXYZ(vertexIndex, pickedColor.r, pickedColor.g, pickedColor.b);
+      }
+
+      colorAttr.needsUpdate = true;
+    }
+
+    function resetMeshPaint() {
+      if (!state.currentMesh) return;
+      applyDefaultVertexColors(state.currentMesh.geometry, state.originalColorHex);
+      state.currentMesh.geometry.getAttribute('color').needsUpdate = true;
+      setStatus('Paint reset', 'good');
+    }
+
+    // -------------------------------------------------------------------------
+    // File ingest
+    // -------------------------------------------------------------------------
+    async function handleFile(file) {
+      if (!file) return;
+
+      try {
+        setStatus('Reading file…', 'busy');
+        setProgress(5);
+
+        const filename = file.name || 'Untitled';
+        const ext = filename.split('.').pop()?.toLowerCase() || '';
+
+        let geometry = null;
+
+        if (ext === 'stl') {
+          const buffer = await file.arrayBuffer();
+          geometry = stlLoader.parse(buffer);
+        } else if (ext === 'obj') {
+          const text = await file.text();
+          geometry = parseOBJToMergedGeometry(text);
+        } else if (ext === '3mf') {
+          const buffer = await file.arrayBuffer();
+          geometry = await parse3MFToMergedGeometry(buffer);
+        } else if (ext === 'step' || ext === 'stp') {
+          const buffer = await file.arrayBuffer();
+          geometry = await parseSTEPToMergedGeometry(buffer);
+        } else {
+          throw new Error('Unsupported file type. Use STL, OBJ, 3MF, STEP, or STP.');
+        }
+
+        setProgress(60);
+
+        const { group } = buildMeshFromGeometry(geometry);
+        setLoadedObject(group, filename);
+
+        setProgress(100);
+        setStatus('Model ready', 'good');
+      } catch (error) {
+        console.error(error);
+        setStatus(\`Load failed: \${error.message}\`, 'warn');
+        setProgress(0);
+      }
+    }
+
+    // -------------------------------------------------------------------------
+    // Events
+    // -------------------------------------------------------------------------
+    browseBtnEl.addEventListener('click', () => fileInputEl.click());
+
+    fileInputEl.addEventListener('change', (event) => {
+      const file = event.target.files?.[0];
+      handleFile(file);
+      fileInputEl.value = '';
+    });
+
+    viewerPaneEl.addEventListener('dragenter', (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      dropOverlayEl.classList.add('active');
+    });
+
+    viewerPaneEl.addEventListener('dragover', (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      dropOverlayEl.classList.add('active');
+    });
+
+    viewerPaneEl.addEventListener('dragleave', (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+
+      const related = event.relatedTarget;
+      if (!viewerPaneEl.contains(related)) {
+        dropOverlayEl.classList.remove('active');
+      }
+    });
+
+    viewerPaneEl.addEventListener('drop', (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      dropOverlayEl.classList.remove('active');
+
+      const file = event.dataTransfer?.files?.[0];
+      handleFile(file);
+    });
+
+    renderer.domElement.addEventListener('pointerdown', (event) => {
+      if (state.paintMode) {
+        paintIntersectedFace(event);
+      }
+    });
+
+    fitViewBtnEl.addEventListener('click', () => {
+      if (state.currentObject) frameObject(state.currentObject);
+    });
+
+    transformTranslateBtnEl.addEventListener('click', () => setTransformMode('translate'));
+    transformRotateBtnEl.addEventListener('click', () => setTransformMode('rotate'));
+
+    paintToggleEl.addEventListener('click', () => {
+      setPaintMode(!state.paintMode);
+    });
+
+    resetPaintBtnEl.addEventListener('click', resetMeshPaint);
+
+    recenterBtnEl.addEventListener('click', () => {
+      if (!state.currentMesh) return;
+      const current = state.currentMesh.geometry.clone();
+      const recentered = centerGeometryOnPlate(ensureNonIndexedGeometry(current));
+      state.currentMesh.geometry.dispose();
+      state.currentMesh.geometry = recentered;
+      updateModelStats(recentered);
+      frameObject(state.currentObject);
+      setStatus('Model recentered', 'good');
+    });
+
+    sliceBtnEl.addEventListener('click', runSlice);
+
+    toolpathBtnEl.addEventListener('click', () => {
+      try {
+        showToolpathFromGcode(state.currentGcodeText);
+      } catch (error) {
+        setStatus(error.message, 'warn');
+      }
+    });
+
+    materialEl.addEventListener('change', () => {
+      if (state.currentSliceMetadata) {
+        const volumeCm3 = extractExtrudedVolumeCm3(state.currentSliceMetadata);
+        if (Number.isFinite(volumeCm3)) {
+          const density = selectedMaterialDensity();
+          const massG = volumeCm3 * density;
+          const cost = (massG / 1000) * parseFloat(pricePerKgEl.value || '0');
+          massStatEl.textContent = `${massG.toFixed(2)} g`;
+          costStatEl.textContent = `$${cost.toFixed(2)}`;
+        }
+      }
+    });
+
+    pricePerKgEl.addEventListener('input', () => {
+      if (state.currentSliceMetadata) {
+        const volumeCm3 = extractExtrudedVolumeCm3(state.currentSliceMetadata);
+        if (Number.isFinite(volumeCm3)) {
+          const density = selectedMaterialDensity();
+          const massG = volumeCm3 * density;
+          const cost = (massG / 1000) * parseFloat(pricePerKgEl.value || '0');
+          costStatEl.textContent = `$${cost.toFixed(2)}`;
+        }
+      }
+    });
+
+    window.addEventListener('resize', () => {
+      const w = viewerEl.clientWidth;
+      const h = viewerEl.clientHeight;
+      camera.aspect = w / h;
+      camera.updateProjectionMatrix();
+      renderer.setSize(w, h);
+    });
+
+    // -------------------------------------------------------------------------
+    // Animation
+    // -------------------------------------------------------------------------
+    function animate() {
+      requestAnimationFrame(animate);
+      orbit.update();
+      renderer.render(scene, camera);
+    }
+
+    // -------------------------------------------------------------------------
+    // Boot
+    // -------------------------------------------------------------------------
+    function seedDemoPlaceholder() {
+      const geometry = new THREE.BoxGeometry(40, 20, 30).toNonIndexed();
+      applyDefaultVertexColors(geometry);
+      geometry.computeVertexNormals();
+      centerGeometryOnPlate(geometry);
+      const material = buildColoredMaterial();
+      const mesh = new THREE.Mesh(geometry, material);
+      const group = new THREE.Group();
+      group.add(mesh);
+      setLoadedObject(group, 'Sample Block');
+      setStatus('Sample placeholder loaded', 'good');
+      state.currentSliceMetadata = null;
+      state.currentGcodeText = '';
+      resetEstimationUI();
+    }
+
+    setTransformMode('translate');
+    updateInteractionLabel();
+    seedDemoPlaceholder();
+    animate();
+  </script>
 </body>
 </html>
