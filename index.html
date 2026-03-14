@@ -1399,6 +1399,9 @@ function meshToSTLBuffer(mesh) {
 
 function buildWorker() {
   const code = `
+// cura-wasm checks for 'window' internally — polyfill it for Worker context
+if (typeof window === 'undefined') self.window = self;
+
 import { CuraWASM } from 'https://esm.sh/cura-wasm?bundle';
 import { resolveDefinition } from 'https://esm.sh/cura-wasm-definitions?bundle';
 let sl=null;
