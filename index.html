@@ -490,7 +490,11 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:15px;heigh
       <button class="vtool" id="btnRotate" onclick="setTool('rotate')">↻ Rotate</button>
       <button class="vtool" id="btnPaint" onclick="setTool('paint')">🎨 Paint</button>
       <div class="vtool-div"></div>
-      <button class="vtool" onclick="fitView()">⊡ Fit</button>
+      <button class="vtool" onclick="autoCenter()" title="Center model on build plate XZ">⊕ Center</button>
+      <button class="vtool" onclick="autoOnBed()" title="Drop model flush to bed (Y=0)">⬇ On Bed</button>
+      <button class="vtool" id="btnAutoDetect" onclick="autoDetect()" title="Scale & position model to fit within 256×256×256 build volume">⚠ Auto-Fit</button>
+      <div class="vtool-div"></div>
+      <button class="vtool" onclick="fitView()">⊡ Fit View</button>
       <button class="vtool" id="btnWire" onclick="toggleWire()">⬡ Wire</button>
       <input type="file" id="newFileInput" accept=".stl,.obj,.3mf,.step,.stp" style="display:none">
       <button class="vtool" onclick="document.getElementById('newFileInput').click()">📁 New File</button>
@@ -701,15 +705,36 @@ scene.add(new THREE.DirectionalLight(0x7eb6ff, 0.7).position.set(-200, 160, -140
 const hemi = new THREE.HemisphereLight(0x8cb4ff, 0x1a2a4a, 0.5); scene.add(hemi);
 
 // Build plate
+const PLATE = 256; // mm — Bambu P2S build volume: 256×256×256
+
 function buildPlate() {
-  const pg = new THREE.PlaneGeometry(256, 256);
+  // Floor mesh
+  const pg = new THREE.PlaneGeometry(PLATE, PLATE);
   const pm = new THREE.MeshStandardMaterial({color:0x0C1424, roughness:0.92, metalness:0.05, transparent:true, opacity:0.9});
   const plate = new THREE.Mesh(pg, pm); plate.rotation.x = -Math.PI/2; plate.receiveShadow = true; scene.add(plate);
-  const grid = new THREE.GridHelper(256, 32, 0x1E3A5F, 0x1A2E4A); grid.position.y = 0.2; grid.material.transparent = true; grid.material.opacity = 0.7; scene.add(grid);
-  // Border lines
-  const bpts = [[-128,.4,-128],[128,.4,-128],[128,.4,128],[-128,.4,128],[-128,.4,-128]].map(([x,y,z])=>new THREE.Vector3(x,y,z));
-  const bg = new THREE.BufferGeometry().setFromPoints(bpts);
-  scene.add(new THREE.Line(bg, new THREE.LineBasicMaterial({color:0x00E5FF,transparent:true,opacity:0.2})));
+
+  // Grid
+  const grid = new THREE.GridHelper(PLATE, 32, 0x1E3A5F, 0x1A2E4A);
+  grid.position.y = 0.2; grid.material.transparent = true; grid.material.opacity = 0.7; scene.add(grid);
+
+  // Build volume wireframe box 256x256x256
+  const H2 = PLATE/2, HH = PLATE;
+  const verts = [
+    // bottom square
+    -H2,0,-H2,  H2,0,-H2,   H2,0,-H2,  H2,0,H2,   H2,0,H2, -H2,0,H2,  -H2,0,H2, -H2,0,-H2,
+    // top square
+    -H2,HH,-H2, H2,HH,-H2,  H2,HH,-H2, H2,HH,H2,  H2,HH,H2,-H2,HH,H2, -H2,HH,H2,-H2,HH,-H2,
+    // verticals
+    -H2,0,-H2,-H2,HH,-H2,  H2,0,-H2,H2,HH,-H2,  H2,0,H2,H2,HH,H2,  -H2,0,H2,-H2,HH,H2
+  ];
+  const boxGeo = new THREE.BufferGeometry();
+  boxGeo.setAttribute('position', new THREE.Float32BufferAttribute(verts, 3));
+  scene.add(new THREE.LineSegments(boxGeo, new THREE.LineBasicMaterial({color:0x00E5FF, transparent:true, opacity:0.07})));
+
+  // Bright bottom border
+  const bpts = [[-H2,.4,-H2],[H2,.4,-H2],[H2,.4,H2],[-H2,.4,H2],[-H2,.4,-H2]].map(([x,y,z])=>new THREE.Vector3(x,y,z));
+  scene.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(bpts), new THREE.LineBasicMaterial({color:0x00E5FF,transparent:true,opacity:0.22})));
+
   // Axis helper
   const ax = new THREE.AxesHelper(40); ax.position.set(-120,0.5,-120); scene.add(ax);
 }
@@ -835,7 +860,7 @@ function spawnModel(geo, name) {
   // Vertex colors
   applyVertexColor(geo, new THREE.Color(S.colorHex));
 
-  const mat = new THREE.MeshStandardMaterial({vertexColors:true, roughness:0.68, metalness:0.05});
+  const mat = new THREE.MeshStandardMaterial({vertexColors:true, roughness:0.92, metalness:0.0, envMapIntensity:0.0});
   const mesh = new THREE.Mesh(geo, mat);
   mesh.castShadow = true; mesh.receiveShadow = true;
 
@@ -867,6 +892,7 @@ function spawnModel(geo, name) {
   updateLayerUI();
   updateCost();
   fitView();
+  updateDimsUI(); // will warn if outside build volume
 
   if (S.tool === 'move' || S.tool === 'rotate') xform.attach(modelGroup);
   if (S.viewMode === 'layer') applyClipMode();
@@ -1052,6 +1078,84 @@ function fitView() {
   orbit.update();
 }
 window.fitView = fitView;
+
+// ── Auto-Center: centres model XZ on plate, keeps current Y ────────
+function autoCenter() {
+  if (!modelGroup) return;
+  const box = new THREE.Box3().setFromObject(modelGroup);
+  const c = box.getCenter(new THREE.Vector3());
+  modelGroup.position.x -= c.x;
+  modelGroup.position.z -= c.z;
+  modelBBox = new THREE.Box3().setFromObject(modelGroup);
+  updateDimsUI();
+  setStatus('Model centred on build plate ✓', 'good');
+}
+window.autoCenter = autoCenter;
+
+// ── Auto On Bed: drops model so its lowest point sits at Y=0 ───────
+function autoOnBed() {
+  if (!modelGroup) return;
+  const box = new THREE.Box3().setFromObject(modelGroup);
+  modelGroup.position.y -= box.min.y;
+  modelBBox = new THREE.Box3().setFromObject(modelGroup);
+  updateDimsUI();
+  setStatus('Model placed on bed ✓', 'good');
+}
+window.autoOnBed = autoOnBed;
+
+// ── Auto-Detect: checks build volume; scales down if outside 256³ ──
+function autoDetect() {
+  if (!modelGroup) return;
+  const btn = document.getElementById('btnAutoDetect');
+
+  // First run center + on-bed
+  autoOnBed();
+  autoCenter();
+
+  const box = new THREE.Box3().setFromObject(modelGroup);
+  const sz = box.getSize(new THREE.Vector3());
+  const maxD = Math.max(sz.x, sz.y, sz.z);
+  const LIMIT = 256;
+
+  if (maxD <= LIMIT && sz.x <= LIMIT && sz.y <= LIMIT && sz.z <= LIMIT) {
+    btn.classList.remove('on');
+    btn.style.color = '';
+    setStatus(`Model fits in 256×256×256 build volume ✓  (${sz.x.toFixed(0)}×${sz.y.toFixed(0)}×${sz.z.toFixed(0)} mm)`, 'good');
+    return;
+  }
+
+  // Scale down uniformly to fit
+  const scaleFactor = (LIMIT * 0.97) / maxD;
+  const c = box.getCenter(new THREE.Vector3());
+  modelGroup.position.x -= c.x; modelGroup.position.z -= c.z; // keep centred during scale
+  modelGroup.scale.multiplyScalar(scaleFactor);
+
+  // Recentre and re-bed after scale
+  autoOnBed();
+  autoCenter();
+  modelBBox = new THREE.Box3().setFromObject(modelGroup);
+
+  const newSz = modelBBox.getSize(new THREE.Vector3());
+  btn.classList.remove('on');
+  btn.style.color = '';
+  setStatus(`Model scaled to fit: ${(scaleFactor*100).toFixed(0)}% → ${newSz.x.toFixed(0)}×${newSz.y.toFixed(0)}×${newSz.z.toFixed(0)} mm`, 'warn');
+  updateDimsUI();
+  fitView();
+}
+window.autoDetect = autoDetect;
+
+// Helper — refresh dimension readouts after transform ops
+function updateDimsUI() {
+  if (!modelBBox) return;
+  const sz = modelBBox.getSize(new THREE.Vector3());
+  const ds = `${sz.x.toFixed(0)}×${sz.y.toFixed(0)}×${sz.z.toFixed(0)} mm`;
+  document.getElementById('stDims').textContent = ds;
+  const sdEl = document.getElementById('sDims'); if (sdEl) sdEl.textContent = ds;
+  // Warn if outside build volume
+  const btn = document.getElementById('btnAutoDetect');
+  const outside = sz.x > 256 || sz.y > 256 || sz.z > 256;
+  if (btn) { btn.classList.toggle('on', outside); btn.style.color = outside ? 'var(--warn)' : ''; }
+}
 
 // ════════════════════════════════════════════════
 // G-CODE PARSER — Color-coded by type
