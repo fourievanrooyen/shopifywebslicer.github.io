@@ -1,490 +1,1503 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>LayerWorks Engineering — Product Quote Configurator</title>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+<title>LayerWorks — 3D Print Configurator</title>
+<script src="https://cdn.jsdelivr.net/npm/occt-import-js@0.0.24/dist/occt-import-js.js"></script>
+<script type="importmap">{"imports":{"three":"https://unpkg.com/three@0.160.0/build/three.module.js","three/":"https://unpkg.com/three@0.160.0/"}}</script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#080C14;--bg2:#0D1220;--bg3:#111827;
+  --card:#141C2E;--card2:#1A2540;
+  --border:rgba(255,255,255,0.06);--border2:rgba(255,255,255,0.11);
+  --text:#EAF0FF;--muted:#8896AB;--dim:#4A5568;
+  --cyan:#00E5FF;--cyan15:rgba(0,229,255,0.12);--cyan30:rgba(0,229,255,0.28);
+  --green:#22D17A;--warn:#FBBF24;--danger:#FF5A5A;--orange:#FF8F00;
+  --f:'Inter',system-ui,sans-serif;--m:'JetBrains Mono',monospace;
+  --lh:56px;--sb:310px;--rp:200px;--rad:10px;--shadow:0 8px 24px rgba(0,0,0,.4);
+  /* toolpath colors */
+  --c-outer:#FF8F00;--c-inner:#FFB300;--c-infill:#3B82F6;
+  --c-skin:#22D17A;--c-support:#EF4444;--c-bridge:#00E5FF;--c-skirt:#6B7280;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);font-family:var(--f);-webkit-font-smoothing:antialiased;font-size:13px}
 
-  <script src="https://cdn.jsdelivr.net/npm/occt-import-js@0.0.24/dist/occt-import-js.js"></script>
+/* ══ TOPBAR ══════════════════════════════════════════ */
+.topbar{height:var(--lh);display:flex;align-items:center;gap:8px;padding:0 14px;
+  background:rgba(8,12,20,.95);border-bottom:1px solid var(--border);
+  backdrop-filter:blur(12px);z-index:20;flex-shrink:0}
+.brand{display:flex;align-items:center;gap:9px;margin-right:8px}
+.brand-icon{width:32px;height:32px;background:linear-gradient(135deg,var(--cyan),#89d2ff);
+  border-radius:9px;display:grid;place-items:center;color:#080C14;font-weight:800;font-size:13px;
+  box-shadow:0 4px 12px rgba(0,229,255,.25);flex-shrink:0}
+.brand-name{font-weight:800;font-size:15px;letter-spacing:-.3px}
+.brand-sub{font-size:10px;color:var(--muted);letter-spacing:.5px}
+.topbar-sep{width:1px;height:22px;background:var(--border2);flex-shrink:0}
+.topbar-file{flex:1;font-size:12px;color:var(--muted);font-family:var(--m);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.topbar-file strong{color:var(--text)}
 
-  <script type="importmap">
-  {
-    "imports": {
-      "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
-      "three/": "https://unpkg.com/three@0.160.0/"
-    }
-  }
-  </script>
+.view-tabs{display:flex;gap:2px;background:rgba(255,255,255,.04);
+  border:1px solid var(--border);border-radius:8px;padding:3px}
+.vtab{padding:5px 13px;border-radius:6px;font-size:11px;font-weight:600;
+  border:none;background:transparent;color:var(--muted);cursor:pointer;
+  transition:all .15s;white-space:nowrap;font-family:var(--f)}
+.vtab:hover{color:var(--text)}
+.vtab.on{background:var(--cyan15);color:var(--cyan);border:1px solid rgba(0,229,255,.2)}
 
-  <style>
-    /* Kept your original styling, just optimized for the new layout */
-    :root {
-      --bg: #080C14; --bg2: #0E1420; --card: #141C2E; --card2: #1A2540;
-      --border: #24314f; --text: #EAF0FF; --muted: #9AA7C2;
-      --accent: #5DA8FF; --accent2: #78C7FF; --good: #1FD18A;
-      --warn: #FFC857; --danger: #FF6B6B; --input: #0D1526;
-      --shadow: 0 12px 28px rgba(0,0,0,0.35); --radius: 18px;
-      --sidebar-width: 370px; --topbar-height: 68px;
-    }
+.slice-btn{padding:9px 20px;background:var(--cyan);color:#080C14;font-weight:700;
+  border:none;border-radius:8px;cursor:pointer;font-size:13px;font-family:var(--f);
+  transition:all .2s;white-space:nowrap;flex-shrink:0}
+.slice-btn:hover{filter:brightness(1.12);box-shadow:0 0 18px rgba(0,229,255,.35)}
+.slice-btn:disabled{opacity:.45;cursor:not-allowed}
 
-    * { box-sizing: border-box; }
-    html, body { margin: 0; padding: 0; width: 100vw; height: 100vh; overflow: hidden; background: var(--bg); color: var(--text); font-family: Inter, system-ui, sans-serif; }
-    body { display: flex; flex-direction: column; }
+/* ══ LAYOUT ══════════════════════════════════════════ */
+.app-body{display:flex;height:calc(100vh - var(--lh) - 48px)}
 
-    .app { width: 100vw; height: 100vh; display: flex; flex-direction: column; background: radial-gradient(circle at top left, rgba(93,168,255,0.08), transparent 25%), linear-gradient(180deg, #080C14 0%, #0B111B 100%); }
-    .topbar { height: var(--topbar-height); display: flex; align-items: center; justify-content: space-between; padding: 0 18px; border-bottom: 1px solid rgba(255,255,255,0.06); background: rgba(8,12,20,0.94); backdrop-filter: blur(10px); z-index: 10; }
-    .brand { display: flex; align-items: center; gap: 12px; font-weight: 700; }
-    .brand-badge { width: 38px; height: 38px; border-radius: 12px; display: grid; place-items: center; background: linear-gradient(135deg, var(--accent), #89d2ff); color: #08111e; font-weight: 800; }
-    .brand-copy { display: flex; flex-direction: column; line-height: 1.05; }
-    .brand-copy small { color: var(--muted); font-weight: 500; font-size: 0.75rem; margin-top: 2px; }
-    
-    .pill { padding: 8px 12px; border-radius: 999px; border: 1px solid var(--border); background: rgba(255,255,255,0.03); color: var(--muted); font-size: 0.82rem; }
-    
-    .main { flex: 1; display: flex; width: 100%; height: calc(100vh - var(--topbar-height)); }
-    .viewer-pane { position: relative; flex: 1; height: 100%; overflow: hidden; }
-    #viewer { position: absolute; inset: 0; width: 100%; height: 100%; cursor: grab; }
-    
-    .canvas-overlay-ui { pointer-events: none; position: absolute; inset: 0; z-index: 4; }
-    .hud { position: absolute; top: 18px; left: 18px; display: flex; flex-direction: column; gap: 10px; pointer-events: none; }
-    .hud-card { min-width: 220px; pointer-events: auto; background: rgba(20,28,46,0.78); border: 1px solid rgba(255,255,255,0.06); border-radius: 16px; padding: 12px 14px; backdrop-filter: blur(10px); }
-    .hud-title { font-size: 0.77rem; color: var(--muted); margin-bottom: 6px; text-transform: uppercase; }
-    .hud-value { font-size: 0.96rem; font-weight: 700; }
+/* ══ LEFT SIDEBAR ════════════════════════════════════ */
+.lsb{width:var(--sb);min-width:var(--sb);background:var(--bg2);
+  border-right:1px solid var(--border);overflow-y:auto;overflow-x:hidden;
+  display:flex;flex-direction:column}
+.lsb::-webkit-scrollbar{width:4px}
+.lsb::-webkit-scrollbar-thumb{background:var(--card2);border-radius:2px}
 
-    .corner-tools { position: absolute; top: 18px; right: 18px; display: flex; gap: 10px; z-index: 5; pointer-events: auto; }
-    
-    .btn, button { appearance: none; border: 1px solid var(--border); background: linear-gradient(180deg, #18233A 0%, #111B30 100%); color: var(--text); padding: 10px 14px; border-radius: 12px; font-size: 0.92rem; font-weight: 600; cursor: pointer; transition: all 0.15s ease; }
-    .btn:hover, button:hover { transform: translateY(-1px); border-color: rgba(120,199,255,0.5); }
-    .btn.secondary { background: rgba(255,255,255,0.04); }
-    .btn.primary { background: linear-gradient(180deg, #2368C4 0%, #124F9B 100%); border-color: rgba(120,199,255,0.7); width: 100%; margin-top: 10px;}
-    .btn.good { background: linear-gradient(180deg, #23a867 0%, #178551 100%); border-color: rgba(31,209,138,0.7); }
+/* Accordion */
+.acc-header{display:flex;align-items:center;justify-content:space-between;
+  padding:11px 14px;cursor:pointer;user-select:none;border-bottom:1px solid var(--border);
+  transition:background .15s}
+.acc-header:hover{background:rgba(255,255,255,.02)}
+.acc-title{font-size:11px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;
+  color:var(--muted);display:flex;align-items:center;gap:7px}
+.acc-title-icon{font-size:14px;width:18px;text-align:center}
+.acc-caret{font-size:10px;color:var(--dim);transition:transform .2s}
+.acc-body{padding:14px;border-bottom:1px solid var(--border);display:none}
+.acc-body.open{display:block}
 
-    .sidebar { width: var(--sidebar-width); height: 100%; overflow-y: auto; padding: 16px; border-left: 1px solid rgba(255,255,255,0.06); background: linear-gradient(180deg, rgba(10,16,26,0.92) 0%, rgba(9,14,23,0.98) 100%); }
-    .panel { background: linear-gradient(180deg, var(--card) 0%, #111a2d 100%); border: 1px solid rgba(255,255,255,0.06); border-radius: var(--radius); padding: 16px; margin-bottom: 14px; }
-    .panel h3 { margin: 0 0 6px; font-size: 1rem; }
-    .panel .sub { color: var(--muted); font-size: 0.88rem; margin-bottom: 14px; }
-    
-    .field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 10px; }
-    .field label { color: var(--muted); font-size: 0.82rem; font-weight: 600; }
-    .field input, .field select, .field textarea { width: 100%; border-radius: 12px; border: 1px solid var(--border); background: var(--input); color: var(--text); padding: 10px 12px; outline: none; font-size: 0.92rem; font-family: inherit; }
-    .field textarea { min-height: 88px; resize: vertical; }
+/* Fields */
+.field{margin-bottom:14px}
+.field:last-child{margin-bottom:0}
+.field>label{display:flex;justify-content:space-between;align-items:center;
+  font-size:10.5px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;
+  color:var(--dim);margin-bottom:7px}
+.field>label span{color:var(--cyan);font-family:var(--m);text-transform:none;
+  letter-spacing:0;font-size:11px;font-weight:600}
+select,input[type=number]{width:100%;padding:8px 11px;background:var(--card);
+  border:1px solid var(--border2);border-radius:7px;color:var(--text);
+  font-size:12px;font-family:var(--f);outline:none;transition:border-color .15s}
+select{cursor:pointer;appearance:none;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' fill='%234A5568'%3E%3Cpath d='M0 0l5 6 5-6z'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 10px center}
+select:focus,input[type=number]:focus{border-color:rgba(0,229,255,.35)}
+select option{background:#111827}
+select optgroup{color:var(--cyan);font-style:normal;font-weight:700;background:var(--bg2)}
 
-    .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-    .stat { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); border-radius: 14px; padding: 12px; }
-    .stat .k { color: var(--muted); font-size: 0.75rem; text-transform: uppercase; margin-bottom: 6px; }
-    .stat .v { font-size: 1rem; font-weight: 700; word-break: break-word; }
-    
-    .status { display: flex; align-items: center; gap: 10px; font-size: 0.9rem; color: var(--muted); margin-top: 8px; }
-    .dot { width: 10px; height: 10px; border-radius: 999px; background: var(--muted); }
-    .dot.good { background: var(--good); }
-    .dot.warn { background: var(--warn); }
-    .dot.busy { background: var(--accent); box-shadow: 0 0 0 8px rgba(93,168,255,0.08); animation: pulse 1.2s infinite ease-out; }
-    
-    @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(93,168,255,0.22); } 100% { box-shadow: 0 0 0 12px rgba(93,168,255,0); } }
-    
-    .progress-wrap { width: 100%; height: 10px; border-radius: 999px; overflow: hidden; background: rgba(255,255,255,0.06); margin-top: 10px; }
-    .progress-bar { width: 0%; height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent2)); transition: width 0.15s linear; }
+input[type=range]{-webkit-appearance:none;appearance:none;width:100%;
+  height:4px;background:var(--card2);border-radius:2px;outline:none;cursor:pointer}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:15px;height:15px;
+  border-radius:50%;background:var(--cyan);cursor:pointer;
+  box-shadow:0 0 8px rgba(0,229,255,.4)}
+.range-row{display:flex;justify-content:space-between;font-size:9px;
+  color:var(--dim);margin-top:4px;font-family:var(--m)}
 
-    .hidden { display: none !important; }
-    
-    @media (max-width: 940px) {
-      .main { flex-direction: column; }
-      .viewer-pane { min-height: 52vh; }
-      .sidebar { width: 100%; height: 48vh; border-left: none; border-top: 1px solid rgba(255,255,255,0.06); }
-    }
-  </style>
+/* Stepper */
+.stepper{display:flex;align-items:center;gap:0;background:var(--card);
+  border:1px solid var(--border2);border-radius:7px;overflow:hidden;height:34px}
+.stepper button{background:transparent;border:none;color:var(--muted);
+  width:34px;font-size:17px;cursor:pointer;transition:all .15s;font-family:var(--f)}
+.stepper button:hover{background:var(--cyan15);color:var(--cyan)}
+.stepper span{flex:1;text-align:center;font-family:var(--m);font-weight:600;
+  font-size:13px;border-left:1px solid var(--border);border-right:1px solid var(--border)}
+
+/* Layer height presets */
+.lh-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:5px}
+.lh-btn{padding:6px 4px;text-align:center;border-radius:6px;border:1px solid var(--border2);
+  background:transparent;color:var(--muted);cursor:pointer;font-size:10px;
+  font-family:var(--m);transition:all .15s;line-height:1.3}
+.lh-btn:hover{border-color:rgba(0,229,255,.3)}
+.lh-btn.on{border-color:var(--cyan);background:var(--cyan15);color:var(--cyan)}
+.lh-btn small{display:block;font-size:8.5px;opacity:.7}
+
+/* Pattern buttons */
+.pat-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px}
+.pat-btn{padding:8px;text-align:left;border-radius:7px;border:1px solid var(--border2);
+  background:transparent;color:var(--muted);cursor:pointer;font-size:11px;
+  font-family:var(--f);transition:all .15s;font-weight:500}
+.pat-btn span{display:block;font-size:9px;color:var(--dim);margin-top:2px;font-weight:400}
+.pat-btn:hover{border-color:rgba(0,229,255,.3)}
+.pat-btn.on{border-color:var(--cyan);background:var(--cyan15);color:var(--cyan)}
+
+/* Toggle */
+.toggle-row{display:flex;align-items:center;justify-content:space-between;
+  padding:8px 0;border-bottom:1px solid rgba(255,255,255,.04)}
+.toggle-row:last-child{border-bottom:none}
+.toggle-label{font-size:12px;font-weight:500;color:var(--text)}
+.toggle-sub{font-size:10px;color:var(--dim);margin-top:1px}
+.toggle{position:relative;width:36px;height:20px;flex-shrink:0}
+.toggle input{opacity:0;width:0;height:0}
+.toggle-track{position:absolute;inset:0;background:var(--card2);
+  border-radius:10px;transition:.2s;cursor:pointer;border:1px solid var(--border2)}
+.toggle input:checked+.toggle-track{background:var(--cyan15);border-color:rgba(0,229,255,.4)}
+.toggle-track::before{content:'';position:absolute;width:14px;height:14px;
+  left:2px;bottom:2px;background:var(--muted);border-radius:50%;transition:.2s}
+.toggle input:checked+.toggle-track::before{transform:translateX(16px);background:var(--cyan)}
+
+/* Color dots */
+.color-grid{display:flex;flex-wrap:wrap;gap:6px}
+.cdot{width:24px;height:24px;border-radius:50%;cursor:pointer;
+  transition:all .15s;border:2px solid transparent;flex-shrink:0}
+.cdot:hover{transform:scale(1.2)}
+.cdot.on{border-color:var(--cyan);box-shadow:0 0 10px rgba(0,229,255,.4);transform:scale(1.15)}
+
+/* Cost panel */
+.cost-card{background:var(--card);border-radius:var(--rad);border:1px solid var(--border);padding:13px}
+.cost-row{display:flex;justify-content:space-between;align-items:center;
+  padding:5px 0;font-size:11.5px;color:var(--muted);
+  border-bottom:1px solid rgba(255,255,255,.04)}
+.cost-row:last-of-type{border-bottom:none}
+.cost-row span:last-child{font-family:var(--m);color:var(--text);font-weight:600}
+.cost-total{display:flex;justify-content:space-between;align-items:center;
+  padding:10px 0 0;margin-top:6px;border-top:1px solid var(--border2);font-weight:700}
+.cost-total span:last-child{font-family:var(--m);font-size:20px;color:var(--cyan)}
+.cost-note{font-size:10px;color:var(--dim);margin-top:9px;line-height:1.5}
+
+.get-quote-btn{width:100%;padding:12px;background:var(--cyan);color:#080C14;
+  font-weight:700;font-size:13px;border:none;border-radius:8px;cursor:pointer;
+  font-family:var(--f);margin-top:13px;transition:all .2s}
+.get-quote-btn:hover{filter:brightness(1.1);box-shadow:0 0 18px rgba(0,229,255,.3);transform:translateY(-1px)}
+
+/* Print specs display */
+.spec-row{display:flex;justify-content:space-between;padding:4px 0;
+  font-size:11px;border-bottom:1px solid rgba(255,255,255,.04);color:var(--muted)}
+.spec-row:last-child{border-bottom:none}
+.spec-row span:last-child{color:var(--text);font-family:var(--m);font-weight:500}
+.spec-card{background:var(--card);border-radius:var(--rad);border:1px solid var(--border);
+  padding:11px 13px;margin-bottom:12px}
+
+/* ══ VIEWPORT ════════════════════════════════════════ */
+.vp{flex:1;position:relative;overflow:hidden;
+  background:radial-gradient(circle at 30% 20%,rgba(0,229,255,.04),transparent 40%),
+  linear-gradient(180deg,#08101A,#0A1018)}
+#c3d{position:absolute;inset:0;width:100%;height:100%;display:block}
+
+/* Viewport toolbar */
+.vp-tools{position:absolute;top:12px;left:50%;transform:translateX(-50%);
+  display:flex;align-items:center;gap:4px;z-index:10;
+  background:rgba(8,12,20,.88);border:1px solid var(--border);
+  border-radius:9px;padding:4px;backdrop-filter:blur(10px)}
+.vtool{padding:6px 12px;border-radius:6px;font-size:11px;font-weight:600;
+  border:none;background:transparent;color:var(--muted);cursor:pointer;
+  transition:all .15s;font-family:var(--f);white-space:nowrap}
+.vtool:hover{background:rgba(255,255,255,.06);color:var(--text)}
+.vtool.on{background:var(--cyan15);color:var(--cyan);border:1px solid rgba(0,229,255,.2)}
+.vtool-div{width:1px;height:18px;background:var(--border2);margin:0 2px}
+
+/* Drop overlay */
+.drop-over{position:absolute;inset:0;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:12px;z-index:10;cursor:pointer;
+  transition:all .2s}
+.drop-over.dragover{background:rgba(0,229,255,.04);
+  outline:2px dashed rgba(0,229,255,.5);outline-offset:-12px}
+.drop-icon{font-size:48px;opacity:.25;animation:bob 3s ease-in-out infinite}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+.drop-title{font-size:17px;font-weight:700;color:var(--muted)}
+.drop-sub{font-size:12px;color:var(--dim)}
+.drop-browse{margin-top:6px;padding:9px 22px;border-radius:8px;
+  background:var(--cyan15);border:1px solid rgba(0,229,255,.25);
+  color:var(--cyan);font-weight:700;font-size:12px;cursor:pointer;
+  transition:all .2s;font-family:var(--f)}
+.drop-browse:hover{background:var(--cyan30);box-shadow:0 0 14px rgba(0,229,255,.2)}
+
+/* Model info overlay (top left) */
+.model-hud{position:absolute;top:12px;left:12px;z-index:10;display:none;flex-direction:column;gap:7px}
+.hud-pill{background:rgba(8,12,20,.85);border:1px solid var(--border);
+  border-radius:8px;padding:8px 12px;backdrop-filter:blur(10px)}
+.hud-label{font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;
+  color:var(--dim);margin-bottom:2px}
+.hud-val{font-size:12px;font-weight:600;font-family:var(--m);color:var(--cyan)}
+
+/* Progress overlay */
+.slice-overlay{position:absolute;inset:0;background:rgba(8,12,20,.92);
+  display:none;flex-direction:column;align-items:center;justify-content:center;
+  gap:14px;z-index:15}
+.slice-title{font-size:16px;font-weight:700}
+.slice-sub{font-size:12px;color:var(--muted)}
+.prog-wrap{width:min(340px,80%);height:6px;background:var(--card2);
+  border-radius:3px;overflow:hidden}
+.prog-bar{height:100%;background:linear-gradient(90deg,var(--cyan),#89d2ff);
+  transition:width .15s;border-radius:3px}
+
+/* ══ RIGHT LAYER PANEL ───────────────────────────── */
+.rp{width:var(--rp);min-width:var(--rp);background:var(--bg2);
+  border-left:1px solid var(--border);display:flex;flex-direction:column;
+  padding:0;overflow:hidden}
+.rp-header{padding:10px 14px;border-bottom:1px solid var(--border);flex-shrink:0}
+.rp-title{font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;
+  color:var(--dim);margin-bottom:2px}
+.rp-sub{font-size:11px;color:var(--muted)}
+
+/* Vertical slider */
+.layer-outer{flex:1;display:flex;flex-direction:column;padding:12px 14px;gap:12px;min-height:0}
+.layer-slider-vert{flex:1;position:relative;min-height:0;
+  display:flex;align-items:stretch;justify-content:center}
+.vert-track{position:relative;width:42px;margin:0 auto;cursor:pointer}
+.vert-bg{position:absolute;inset:0;background:var(--card2);
+  border-radius:6px;border:1px solid var(--border2)}
+.vert-fill{position:absolute;bottom:0;left:0;right:0;
+  background:linear-gradient(to top,rgba(0,229,255,.18),rgba(0,229,255,.04));
+  border-radius:0 0 5px 5px;pointer-events:none;transition:height .04s}
+.vert-input{position:absolute;inset:0;opacity:0;cursor:ns-resize;
+  writing-mode:vertical-lr;direction:rtl;-webkit-appearance:slider-vertical;
+  width:100%;height:100%;z-index:3;margin:0;padding:0}
+.vert-thumb{position:absolute;left:0;right:0;height:3px;
+  background:var(--cyan);border-radius:2px;pointer-events:none;z-index:2;
+  box-shadow:0 0 12px rgba(0,229,255,.6),0 0 4px rgba(0,229,255,.9)}
+.vert-label{position:absolute;right:calc(100% + 8px);
+  background:var(--bg2);border:1px solid var(--border2);border-radius:7px;
+  padding:5px 9px;font-family:var(--m);font-size:11px;color:var(--cyan);
+  white-space:nowrap;pointer-events:none;box-shadow:var(--shadow)}
+
+.layer-info{flex-shrink:0}
+.layer-num{font-family:var(--m);font-size:22px;font-weight:700;color:var(--cyan);
+  text-align:center;line-height:1}
+.layer-of{font-size:10px;color:var(--dim);text-align:center;margin-top:3px;font-family:var(--m)}
+.layer-z{font-size:11px;color:var(--muted);text-align:center;margin-top:6px;font-family:var(--m)}
+
+.play-btn{width:100%;padding:8px;background:var(--card);border:1px solid var(--border2);
+  border-radius:7px;color:var(--muted);font-size:12px;font-weight:600;
+  cursor:pointer;transition:all .15s;font-family:var(--f)}
+.play-btn:hover,.play-btn.on{background:var(--cyan15);border-color:rgba(0,229,255,.3);color:var(--cyan)}
+
+/* Type legend */
+.type-legend{flex-shrink:0;padding:0 0 4px}
+.legend-title{font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;
+  color:var(--dim);margin-bottom:8px;text-align:center}
+.legend-row{display:flex;align-items:center;gap:8px;padding:3px 0;
+  font-size:11px;color:var(--muted);cursor:pointer;transition:color .15s}
+.legend-row:hover{color:var(--text)}
+.legend-dot{width:10px;height:10px;border-radius:2px;flex-shrink:0}
+.legend-toggle{width:11px;height:11px;border:1px solid var(--border2);border-radius:2px;
+  flex-shrink:0;margin-left:auto;cursor:pointer;transition:all .15s}
+.legend-toggle.on{background:rgba(255,255,255,.15);border-color:rgba(255,255,255,.3)}
+
+/* ══ BOTTOM BAR ════════════════════════════════════ */
+.botbar{height:48px;background:rgba(8,12,20,.95);border-top:1px solid var(--border);
+  display:flex;align-items:center;gap:0;padding:0 14px;z-index:5;flex-shrink:0}
+.stat-item{display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:0 18px;border-right:1px solid var(--border)}
+.stat-item:first-child{border-left:1px solid var(--border)}
+.stat-k{font-size:9px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--dim)}
+.stat-v{font-family:var(--m);font-size:13px;font-weight:600;color:var(--text)}
+.status-area{flex:1;display:flex;align-items:center;gap:9px;padding:0 16px}
+.status-dot{width:8px;height:8px;border-radius:50%;background:var(--dim);flex-shrink:0}
+.status-dot.good{background:var(--green)}
+.status-dot.warn{background:var(--warn)}
+.status-dot.busy{background:var(--cyan);animation:pulse 1s infinite}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(0,229,255,.4)}100%{box-shadow:0 0 0 8px transparent}}
+.status-text{font-size:12px;color:var(--muted)}
+.botbar-prog{width:160px;height:4px;background:var(--card2);border-radius:2px;overflow:hidden}
+.botbar-prog-bar{height:100%;background:var(--cyan);transition:width .15s}
+
+/* ══ SCROLLBAR ════════════════════════════════════ */
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--card2);border-radius:3px}
+
+/* ══ RESPONSIVE ════════════════════════════════════ */
+@media(max-width:1100px){:root{--sb:270px;--rp:170px}}
+@media(max-width:800px){
+  .rp{display:none}
+  :root{--sb:260px}
+}
+@media(max-width:620px){
+  .app-body{flex-direction:column}
+  .lsb{width:100%;min-width:unset;height:40vh;overflow-y:auto}
+  .vp{height:60vw;min-height:250px}
+}
+</style>
 </head>
 <body>
-  <div class="app">
-    <div class="topbar">
-      <div class="brand">
-        <div class="brand-badge">LW</div>
-        <div class="brand-copy">
-          <span>LayerWorks Engineering</span>
-          <small>Instant Quote Configurator</small>
-        </div>
-      </div>
-      <div class="topbar-actions">
-        <div class="pill" id="topStatus">No model loaded</div>
-      </div>
-    </div>
-
-    <div class="main">
-      <section class="viewer-pane" id="viewerPane">
-        <div id="viewer"></div>
-        <div class="canvas-overlay-ui">
-          <div class="hud">
-            <div class="hud-card">
-              <div class="hud-title">Loaded File</div>
-              <div class="hud-value" id="loadedFilename">None</div>
-            </div>
-          </div>
-          <div class="corner-tools">
-            <button class="btn secondary" id="browseBtn">Upload 3D Model</button>
-            <button class="btn secondary" id="fitViewBtn">Center View</button>
-          </div>
-        </div>
-        <input id="fileInput" type="file" accept=".stl,.obj,.3mf,.step,.stp" class="hidden" />
-      </section>
-
-      <aside class="sidebar">
-        
-        <div class="panel">
-          <h3>1. Part Requirements</h3>
-          <div class="sub">Select your material and desired part strength.</div>
-          
-          <div class="field">
-            <label for="material">Material Type</label>
-            <select id="material">
-              <option value="PLA" data-density="1.24" data-price="29.99" selected>Standard PLA</option>
-              <option value="PETG" data-density="1.29" data-price="34.99">Tough PETG</option>
-              <option value="TPU" data-density="1.19" data-price="45.99">Flexible TPU</option>
-            </select>
-          </div>
-
-          <div class="field">
-            <label for="strengthProfile">Part Strength (Infill)</label>
-            <select id="strengthProfile">
-              <option value="15" selected>Standard (15% Infill - Cost Effective)</option>
-              <option value="40">Strong (40% Infill - Functional Parts)</option>
-              <option value="100">Solid (100% Infill - Maximum Durability)</option>
-            </select>
-          </div>
-          
-          <button class="btn good" id="sliceBtn" style="width:100%; margin-top: 10px;">Calculate Estimate</button>
-          
-          <div class="status" id="sliceStatus">
-            <span class="dot" id="statusDot"></span>
-            <span id="statusText">Awaiting Model</span>
-          </div>
-          <div class="progress-wrap">
-            <div class="progress-bar" id="progressBar"></div>
-          </div>
-        </div>
-
-        <div class="panel">
-          <h3>2. Instant Estimate</h3>
-          <div class="sub">Pricing based on volume. Final quotes may vary based on finishing or supports.</div>
-          <div class="stats-grid">
-            <div class="stat">
-              <div class="k">Size (mm)</div>
-              <div class="v" id="bboxStat">—</div>
-            </div>
-            <div class="stat">
-              <div class="k">Print Time</div>
-              <div class="v" id="timeStat">—</div>
-            </div>
-            <div class="stat">
-              <div class="k">Estimated Mass</div>
-              <div class="v" id="massStat">—</div>
-            </div>
-            <div class="stat" style="background: rgba(93,168,255,0.1); border-color: var(--accent);">
-              <div class="k" style="color: var(--text);">Estimated Cost</div>
-              <div class="v" id="costStat" style="color: var(--accent);">—</div>
-            </div>
-          </div>
-        </div>
-
-        <div class="panel">
-          <h3>3. Request Official Quote</h3>
-          <div class="sub">Send your file and project details to our team.</div>
-          <div class="field">
-            <label for="customerName">Your Name</label>
-            <input id="customerName" type="text" placeholder="John Doe" />
-          </div>
-          <div class="field">
-            <label for="projectNotes">Project Notes & Color Request</label>
-            <textarea id="projectNotes" placeholder="e.g., I need this printed in Matte Black. It's for an outdoor enclosure."></textarea>
-          </div>
-          <button class="btn primary" id="sendEmailBtn">Send Request via Email</button>
-        </div>
-
-      </aside>
-    </div>
+<!-- TOPBAR -->
+<header class="topbar">
+  <div class="brand">
+    <div class="brand-icon">LW</div>
+    <div><div class="brand-name">LayerWorks</div><div class="brand-sub">3D PRINT CONFIGURATOR</div></div>
   </div>
+  <div class="topbar-sep"></div>
+  <div class="topbar-file" id="topFile">No file loaded — drag &amp; drop or click Upload</div>
+  <div class="view-tabs" id="viewTabs">
+    <button class="vtab on" data-mode="solid">Solid</button>
+    <button class="vtab" data-mode="layer">Layer View</button>
+    <button class="vtab" data-mode="xray">X-Ray</button>
+  </div>
+  <button class="slice-btn" id="sliceBtn" disabled>⚡ Slice in Browser</button>
+  <input type="file" id="fileInput" accept=".stl,.obj,.3mf,.step,.stp" style="display:none">
+</header>
 
-  <script type="module">
-    import * as THREE from 'three';
-    import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
-    import { TransformControls } from 'three/examples/jsm/controls/TransformControls.js';
-    import { STLLoader } from 'three/examples/jsm/loaders/STLLoader.js';
-    import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader.js';
-    import { ThreeMFLoader } from 'three/examples/jsm/loaders/3MFLoader.js';
-    import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
+<!-- BODY -->
+<div class="app-body">
 
-    // DOM Elements
-    const viewerEl = document.getElementById('viewer');
-    const fileInputEl = document.getElementById('fileInput');
-    const browseBtnEl = document.getElementById('browseBtn');
-    const fitViewBtnEl = document.getElementById('fitViewBtn');
-    const loadedFilenameEl = document.getElementById('loadedFilename');
-    const topStatusEl = document.getElementById('topStatus');
+  <!-- LEFT SIDEBAR -->
+  <div class="lsb" id="lsb">
 
-    const materialEl = document.getElementById('material');
-    const strengthProfileEl = document.getElementById('strengthProfile');
-    const sliceBtnEl = document.getElementById('sliceBtn');
+    <!-- Filament -->
+    <div class="acc-header" onclick="tog(this)">
+      <div class="acc-title"><span class="acc-title-icon">🧵</span> Filament</div>
+      <span class="acc-caret">▾</span>
+    </div>
+    <div class="acc-body open">
+      <div class="field">
+        <label>Material</label>
+        <select id="selMat"></select>
+      </div>
+      <div class="field">
+        <label>Color <span id="colorName">—</span></label>
+        <div class="color-grid" id="colorGrid"></div>
+      </div>
+    </div>
 
-    const statusDotEl = document.getElementById('statusDot');
-    const statusTextEl = document.getElementById('statusText');
-    const progressBarEl = document.getElementById('progressBar');
+    <!-- Quality -->
+    <div class="acc-header" onclick="tog(this)">
+      <div class="acc-title"><span class="acc-title-icon">🔍</span> Quality</div>
+      <span class="acc-caret">▾</span>
+    </div>
+    <div class="acc-body open">
+      <div class="field">
+        <label>Layer Height <span id="lhDisp">0.20 mm</span></label>
+        <div class="lh-grid" id="lhGrid"></div>
+      </div>
+    </div>
 
-    const bboxStatEl = document.getElementById('bboxStat');
-    const timeStatEl = document.getElementById('timeStat');
-    const massStatEl = document.getElementById('massStat');
-    const costStatEl = document.getElementById('costStat');
+    <!-- Strength -->
+    <div class="acc-header" onclick="tog(this)">
+      <div class="acc-title"><span class="acc-title-icon">💪</span> Strength</div>
+      <span class="acc-caret">▾</span>
+    </div>
+    <div class="acc-body open">
+      <div class="field">
+        <label>Wall Loops <span id="wDisp">2</span></label>
+        <div class="stepper">
+          <button onclick="adj('walls',-1)">−</button>
+          <span id="wVal">2</span>
+          <button onclick="adj('walls',1)">+</button>
+        </div>
+      </div>
+      <div class="field">
+        <label>Top Layers <span id="tDisp">4</span></label>
+        <div class="stepper">
+          <button onclick="adj('top',-1)">−</button>
+          <span id="tVal">4</span>
+          <button onclick="adj('top',1)">+</button>
+        </div>
+      </div>
+      <div class="field">
+        <label>Bottom Layers <span id="bDisp">4</span></label>
+        <div class="stepper">
+          <button onclick="adj('bot',-1)">−</button>
+          <span id="bVal">4</span>
+          <button onclick="adj('bot',1)">+</button>
+        </div>
+      </div>
+    </div>
 
-    const customerNameEl = document.getElementById('customerName');
-    const projectNotesEl = document.getElementById('projectNotes');
-    const sendEmailBtnEl = document.getElementById('sendEmailBtn');
+    <!-- Infill -->
+    <div class="acc-header" onclick="tog(this)">
+      <div class="acc-title"><span class="acc-title-icon">🔷</span> Infill</div>
+      <span class="acc-caret">▾</span>
+    </div>
+    <div class="acc-body open">
+      <div class="field">
+        <label>Density <span id="ifDisp">20%</span></label>
+        <input type="range" id="ifSlider" min="5" max="100" step="5" value="20">
+        <div class="range-row"><span>5%</span><span>50%</span><span>100%</span></div>
+      </div>
+      <div class="field">
+        <label>Pattern</label>
+        <div class="pat-grid" id="patGrid"></div>
+      </div>
+    </div>
 
-    // Store internal state
-    const state = {
-      currentObject: null,
-      currentMesh: null,
-      currentSliceMetadata: null,
-      worker: null,
-      busy: false
-    };
+    <!-- Support -->
+    <div class="acc-header" onclick="tog(this)">
+      <div class="acc-title"><span class="acc-title-icon">🏗️</span> Support</div>
+      <span class="acc-caret">▾</span>
+    </div>
+    <div class="acc-body">
+      <div class="toggle-row">
+        <div><div class="toggle-label">Enable Supports</div>
+          <div class="toggle-sub">For overhangs &gt; 45°</div></div>
+        <label class="toggle"><input type="checkbox" id="suppToggle"><div class="toggle-track"></div></label>
+      </div>
+      <div class="toggle-row" id="suppTypeRow" style="opacity:.45;pointer-events:none">
+        <div><div class="toggle-label">Support Type</div></div>
+        <select id="suppType" style="width:auto;padding:5px 8px;font-size:11px">
+          <option>Normal</option><option>Tree</option></select>
+      </div>
+      <div class="toggle-row" id="suppIntRow" style="opacity:.45;pointer-events:none">
+        <div><div class="toggle-label">Support Interface</div>
+          <div class="toggle-sub">Smoother contact surface</div></div>
+        <label class="toggle"><input type="checkbox" id="suppInt"><div class="toggle-track"></div></label>
+      </div>
+    </div>
 
-    // Initialize Three.js Scene
-    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-    renderer.setPixelRatio(window.devicePixelRatio);
-    renderer.setSize(viewerEl.clientWidth, viewerEl.clientHeight);
-    viewerEl.appendChild(renderer.domElement);
+    <!-- Estimate -->
+    <div class="acc-header" onclick="tog(this)">
+      <div class="acc-title"><span class="acc-title-icon">💰</span> Cost Estimate</div>
+      <span class="acc-caret">▾</span>
+    </div>
+    <div class="acc-body open">
+      <div class="spec-card" id="specCard" style="display:none">
+        <div class="spec-row"><span>Dimensions</span><span id="sDims">—</span></div>
+        <div class="spec-row"><span>Volume</span><span id="sVol">—</span></div>
+        <div class="spec-row"><span>Material</span><span id="sMat">—</span></div>
+        <div class="spec-row"><span>Layer height</span><span id="sLH">—</span></div>
+        <div class="spec-row"><span>Infill</span><span id="sInfill">—</span></div>
+      </div>
+      <div class="cost-card" id="costCard">
+        <div id="costEmpty" style="text-align:center;padding:20px;color:var(--dim)">
+          <div style="font-size:24px;margin-bottom:8px">📦</div>
+          <div>Load a model to estimate cost</div>
+        </div>
+        <div id="costRows" style="display:none">
+          <div class="cost-row"><span>Print weight</span><span id="cvWeight">—</span></div>
+          <div class="cost-row"><span>Material cost</span><span id="cvMat">—</span></div>
+          <div class="cost-row"><span>Est. print time</span><span id="cvTime">—</span></div>
+          <div class="cost-row"><span>Quantity</span>
+            <div style="display:flex;align-items:center;gap:6px">
+              <button onclick="adjQty(-1)" style="background:var(--card2);border:1px solid var(--border2);color:var(--muted);border-radius:4px;width:22px;height:22px;cursor:pointer;font-size:14px">−</button>
+              <span id="qtyDisp" style="font-family:var(--m);font-weight:600;min-width:20px;text-align:center">1</span>
+              <button onclick="adjQty(1)" style="background:var(--card2);border:1px solid var(--border2);color:var(--muted);border-radius:4px;width:22px;height:22px;cursor:pointer;font-size:14px">+</button>
+            </div>
+          </div>
+          <div class="cost-total"><span>Total Est.</span><span id="cvTotal">—</span></div>
+          <p class="cost-note">* Rough estimate. Final quote may vary by complexity, supports, finish, and quantity.</p>
+        </div>
+      </div>
+      <button class="get-quote-btn" onclick="window.open('/pages/contact','_blank')">Request Formal Quote →</button>
+    </div>
 
-    const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(45, viewerEl.clientWidth / viewerEl.clientHeight, 0.1, 5000);
-    camera.position.set(220, 180, 220);
+  </div><!-- /lsb -->
 
-    const orbit = new OrbitControls(camera, renderer.domElement);
-    orbit.enableDamping = true;
-    
-    // Lighting & Environment
-    scene.add(new THREE.AmbientLight(0xffffff, 1.2));
-    const dir1 = new THREE.DirectionalLight(0xffffff, 1.4);
-    dir1.position.set(150, 240, 100);
-    scene.add(dir1);
-    
-    const grid = new THREE.GridHelper(256, 32, 0x355179, 0x22344f);
-    scene.add(grid);
+  <!-- VIEWPORT -->
+  <div class="vp" id="vp">
+    <canvas id="c3d"></canvas>
 
-    // Loaders
-    const stlLoader = new STLLoader();
-    const objLoader = new OBJLoader();
-    const threeMfLoader = new ThreeMFLoader();
+    <!-- Top toolbar -->
+    <div class="vp-tools" id="vpTools" style="display:none">
+      <button class="vtool on" id="btnOrbit" onclick="setTool('orbit')">⟳ Orbit</button>
+      <button class="vtool" id="btnMove" onclick="setTool('move')">✥ Move</button>
+      <button class="vtool" id="btnRotate" onclick="setTool('rotate')">↻ Rotate</button>
+      <button class="vtool" id="btnPaint" onclick="setTool('paint')">🎨 Paint</button>
+      <div class="vtool-div"></div>
+      <button class="vtool" onclick="fitView()">⊡ Fit</button>
+      <button class="vtool" id="btnWire" onclick="toggleWire()">⬡ Wire</button>
+      <input type="file" id="newFileInput" accept=".stl,.obj,.3mf,.step,.stp" style="display:none">
+      <button class="vtool" onclick="document.getElementById('newFileInput').click()">📁 New File</button>
+    </div>
 
-    // Utility Functions
-    function setStatus(text, type = 'idle') {
-      statusTextEl.textContent = text;
-      statusDotEl.className = 'dot';
-      if (type) statusDotEl.classList.add(type);
+    <!-- Model HUD -->
+    <div class="model-hud" id="modelHud">
+      <div class="hud-pill">
+        <div class="hud-label">File</div>
+        <div class="hud-val" id="hudFile" style="color:var(--text);font-size:12px;font-family:var(--m)">—</div>
+      </div>
+      <div class="hud-pill">
+        <div class="hud-label">Interaction</div>
+        <div class="hud-val" id="hudMode">Orbit Camera</div>
+      </div>
+    </div>
+
+    <!-- Drop overlay -->
+    <div class="drop-over" id="dropOver">
+      <div class="drop-icon">📦</div>
+      <div class="drop-title">Drop your 3D file here</div>
+      <div class="drop-sub">STL · OBJ · 3MF · STEP supported</div>
+      <button class="drop-browse" onclick="document.getElementById('fileInput').click()">Choose File</button>
+    </div>
+
+    <!-- Slice progress overlay -->
+    <div class="slice-overlay" id="sliceOver">
+      <div style="font-size:28px">⚙️</div>
+      <div class="slice-title" id="sliceTitle">Slicing in browser…</div>
+      <div class="slice-sub" id="sliceSub">Running Cura WASM engine</div>
+      <div class="prog-wrap"><div class="prog-bar" id="progBar" style="width:0%"></div></div>
+      <div style="font-size:11px;color:var(--dim);margin-top:4px" id="progPct">0%</div>
+    </div>
+
+  </div><!-- /vp -->
+
+  <!-- RIGHT LAYER PANEL -->
+  <div class="rp">
+    <div class="rp-header">
+      <div class="rp-title">Layer View</div>
+      <div class="rp-sub" id="rpSub">Load a model</div>
+    </div>
+
+    <div class="layer-outer">
+      <!-- Layer info -->
+      <div class="layer-info">
+        <div class="layer-num" id="layerNum">—</div>
+        <div class="layer-of" id="layerOf">/ —</div>
+        <div class="layer-z" id="layerZ">—</div>
+      </div>
+
+      <!-- Vertical slider -->
+      <div class="layer-slider-vert">
+        <div class="vert-track" id="vertTrack" style="height:100%">
+          <div class="vert-bg"></div>
+          <div class="vert-fill" id="vertFill"></div>
+          <input type="range" class="vert-input" id="layerSlider" min="1" max="100" value="100" step="1">
+          <div class="vert-thumb" id="vertThumb"></div>
+          <div class="vert-label" id="vertLabel">100</div>
+        </div>
+      </div>
+
+      <!-- Play button -->
+      <button class="play-btn" id="playBtn" onclick="togglePlay()">▶ Play Animation</button>
+
+      <!-- Type legend -->
+      <div class="type-legend">
+        <div class="legend-title">Toolpath Types</div>
+        <div id="legendRows"></div>
+      </div>
+
+    </div>
+  </div><!-- /rp -->
+
+</div><!-- /app-body -->
+
+<!-- BOTTOM BAR -->
+<div class="botbar">
+  <div class="stat-item"><div class="stat-k">Dimensions</div><div class="stat-v" id="stDims">—</div></div>
+  <div class="stat-item"><div class="stat-k">Weight</div><div class="stat-v" id="stWeight">—</div></div>
+  <div class="stat-item"><div class="stat-k">Layers</div><div class="stat-v" id="stLayers">—</div></div>
+  <div class="stat-item"><div class="stat-k">Print Time</div><div class="stat-v" id="stTime">—</div></div>
+  <div class="stat-item"><div class="stat-k">Cost Est.</div><div class="stat-v" id="stCost">—</div></div>
+  <div class="status-area">
+    <div class="status-dot" id="sDot"></div>
+    <div class="status-text" id="sText">Ready — upload a 3D file to begin</div>
+    <div class="botbar-prog"><div class="botbar-prog-bar" id="botProg" style="width:0%"></div></div>
+  </div>
+</div>
+
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
+import { TransformControls } from 'three/examples/jsm/controls/TransformControls.js';
+import { STLLoader } from 'three/examples/jsm/loaders/STLLoader.js';
+import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader.js';
+import { ThreeMFLoader } from 'three/examples/jsm/loaders/3MFLoader.js';
+import * as BGU from 'three/examples/jsm/utils/BufferGeometryUtils.js';
+
+// ════════════════════════════════════════════════
+// MATERIAL LIBRARY
+// ════════════════════════════════════════════════
+const MATS = [
+  {n:'PLA Basic',fam:'PLA',d:1.24,p:19,nz:'190-220°C',bd:'35-45°C',cl:['#FFFFFF','#000000','#808080','#FF0000','#0000FF','#00CC44','#FFFF00','#FF8800','#9900CC','#FF69B4']},
+  {n:'PLA Matte',fam:'PLA',d:1.24,p:17,nz:'190-220°C',bd:'35-45°C',cl:['#F5F5F5','#111111','#6F6F6F','#556B2F','#1E3A8A']},
+  {n:'PLA Silk',fam:'PLA',d:1.24,p:17,nz:'190-220°C',bd:'35-45°C',cl:['#D4AF37','#C0C0C0','#B87333','#B00000','#1E90FF']},
+  {n:'PLA Aero/LW',fam:'PLA',d:0.70,p:20,nz:'180-210°C',bd:'35-45°C',cl:['#EDE6D5','#000000']},
+  {n:'PLA Glow',fam:'PLA',d:1.24,p:19,nz:'190-220°C',bd:'35-45°C',cl:['#B6FF00','#00BFFF']},
+  {n:'PLA Sparkle',fam:'PLA',d:1.24,p:19,nz:'190-220°C',bd:'35-45°C',cl:['#2B2B2B','#8B0000','#1F3C88']},
+  {n:'PLA Marble',fam:'PLA',d:1.24,p:19,nz:'190-220°C',bd:'35-45°C',cl:['#F4F4F4','#9A9A9A']},
+  {n:'PLA Wood',fam:'PLA',d:1.15,p:20,nz:'190-220°C',bd:'35-45°C',cl:['#C19A6B','#8B5A2B']},
+  {n:'PLA Metal',fam:'PLA',d:3.00,p:21,nz:'190-220°C',bd:'35-45°C',cl:['#7F8C8D','#B87333','#CD7F32']},
+  {n:'PLA-CF',fam:'PLA',d:1.30,p:22,nz:'210-240°C',bd:'45-60°C',cl:['#111111']},
+  {n:'PLA-GF',fam:'PLA',d:1.28,p:21,nz:'210-240°C',bd:'45-60°C',cl:['#6F6F6F']},
+  {n:'PETG Basic',fam:'PETG',d:1.27,p:17,nz:'230-250°C',bd:'70-80°C',cl:['#000000','#808080','#1E90FF','#FF0000']},
+  {n:'PETG Clear',fam:'PETG',d:1.27,p:18,nz:'230-250°C',bd:'70-80°C',cl:['#E8F4FC']},
+  {n:'PETG-CF',fam:'PETG',d:1.35,p:22,nz:'240-270°C',bd:'80-100°C',cl:['#333333']},
+  {n:'PETG-GF',fam:'PETG',d:1.32,p:21,nz:'240-270°C',bd:'80-100°C',cl:['#6F6F6F']},
+  {n:'ABS',fam:'ABS/ASA',d:1.04,p:18,nz:'240-270°C',bd:'90-110°C',cl:['#000000','#F5F5F5','#FF0000','#0000FF','#808080']},
+  {n:'ASA',fam:'ABS/ASA',d:1.07,p:20,nz:'240-270°C',bd:'90-110°C',cl:['#000000','#F5F5F5','#808080','#1E3A8A']},
+  {n:'ASA-CF',fam:'ABS/ASA',d:1.20,p:24,nz:'250-280°C',bd:'90-110°C',cl:['#111111']},
+  {n:'PC Standard',fam:'PC',d:1.20,p:22,nz:'260-300°C',bd:'90-110°C',cl:['#FFFFFF','#000000']},
+  {n:'PC-CF',fam:'PC',d:1.28,p:26,nz:'270-300°C',bd:'100-110°C',cl:['#111111']},
+  {n:'PA6 Nylon',fam:'Nylon',d:1.14,p:20,nz:'250-280°C',bd:'80-90°C',cl:['#FFFFFF','#000000']},
+  {n:'PA6-CF/GF',fam:'Nylon',d:1.25,p:24,nz:'260-290°C',bd:'80-90°C',cl:['#111111','#6F6F6F']},
+  {n:'PAHT-CF',fam:'Nylon',d:1.20,p:26,nz:'270-300°C',bd:'100-120°C',cl:['#111111']},
+  {n:'PPA-CF',fam:'Nylon',d:1.22,p:27,nz:'280-320°C',bd:'120-130°C',cl:['#111111']},
+  {n:'TPU 85A',fam:'TPU',d:1.21,p:20,nz:'200-230°C',bd:'30-45°C',cl:['#000000','#F5F5F5']},
+  {n:'TPU 95A',fam:'TPU',d:1.21,p:18,nz:'200-230°C',bd:'30-45°C',cl:['#000000','#FF0000','#0000FF']},
+  {n:'TPU 98A',fam:'TPU',d:1.21,p:19,nz:'200-230°C',bd:'30-45°C',cl:['#000000']},
+  {n:'PET-GF',fam:'Specialty',d:1.38,p:17,nz:'230-250°C',bd:'70-85°C',cl:['#6F6F6F']},
+  {n:'PP',fam:'Specialty',d:0.91,p:20,nz:'220-250°C',bd:'30-40°C',cl:['#F5F5DC']},
+];
+
+const INFILL_PATTERNS = [
+  {id:'grid',     label:'Grid',      desc:'General purpose'},
+  {id:'gyroid',   label:'Gyroid',    desc:'Best all-around'},
+  {id:'honeycomb',label:'Honeycomb', desc:'Compression strength'},
+  {id:'lines',    label:'Lines',     desc:'Fast, alternating'},
+  {id:'triangles',label:'Triangles', desc:'Rigid panels'},
+  {id:'lightning',label:'Lightning', desc:'Minimal / fastest'},
+];
+
+const LH_PRESETS = [
+  {v:0.06, label:'0.06mm', sub:'Ultra'},
+  {v:0.08, label:'0.08mm', sub:'Hi-Q'},
+  {v:0.12, label:'0.12mm', sub:'Fine'},
+  {v:0.16, label:'0.16mm', sub:'Detail'},
+  {v:0.20, label:'0.20mm', sub:'Standard',on:true},
+  {v:0.24, label:'0.24mm', sub:'Quality'},
+  {v:0.28, label:'0.28mm', sub:'Draft'},
+];
+
+const TOOLPATH_TYPES = [
+  {id:'WALL-OUTER',  label:'Outer Wall',   color:'#FF8F00'},
+  {id:'WALL-INNER',  label:'Inner Wall',   color:'#FFB300'},
+  {id:'FILL',        label:'Infill',       color:'#3B82F6'},
+  {id:'SKIN',        label:'Top/Bottom',   color:'#22D17A'},
+  {id:'SUPPORT',     label:'Support',      color:'#EF4444'},
+  {id:'BRIDGE',      label:'Bridge',       color:'#00E5FF'},
+  {id:'SKIRT',       label:'Skirt/Brim',   color:'#6B7280'},
+];
+
+// ════════════════════════════════════════════════
+// STATE
+// ════════════════════════════════════════════════
+const S = {
+  matIdx:0, colorHex:'#FFFFFF', lh:0.20, walls:2, top:4, bot:4,
+  infill:20, pattern:'gyroid', support:false, qty:1,
+  viewMode:'solid', tool:'orbit', wireframe:false,
+  currentLayer:100, totalLayers:100,
+  modelLoaded:false, hasGcode:false,
+  typeVisible:{},
+  playing:false, playTimer:null,
+};
+
+TOOLPATH_TYPES.forEach(t => S.typeVisible[t.id] = true);
+
+// ════════════════════════════════════════════════
+// THREE.JS
+// ════════════════════════════════════════════════
+const vpEl = document.getElementById('vp');
+const canvasEl = document.getElementById('c3d');
+const renderer = new THREE.WebGLRenderer({canvas:canvasEl, antialias:true, alpha:false, preserveDrawingBuffer:true});
+renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+renderer.setClearColor(0x080C14);
+renderer.shadowMap.enabled = true;
+renderer.localClippingEnabled = true;
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(45, 1, 0.1, 5000);
+camera.position.set(200, 170, 200);
+
+const orbit = new OrbitControls(camera, renderer.domElement);
+orbit.enableDamping = true; orbit.dampingFactor = 0.08;
+orbit.target.set(0,30,0); orbit.minDistance = 5; orbit.maxDistance = 1800;
+
+const xform = new TransformControls(camera, renderer.domElement);
+xform.setMode('translate'); xform.setSize(0.9);
+xform.addEventListener('dragging-changed', e => { orbit.enabled = !e.value; });
+scene.add(xform);
+
+// Lights
+scene.add(new THREE.AmbientLight(0xffffff, 1.1));
+const dl = new THREE.DirectionalLight(0xffffff, 1.5); dl.position.set(160, 260, 100); dl.castShadow = true; scene.add(dl);
+scene.add(new THREE.DirectionalLight(0x7eb6ff, 0.7).position.set(-200, 160, -140));
+const hemi = new THREE.HemisphereLight(0x8cb4ff, 0x1a2a4a, 0.5); scene.add(hemi);
+
+// Build plate
+function buildPlate() {
+  const pg = new THREE.PlaneGeometry(256, 256);
+  const pm = new THREE.MeshStandardMaterial({color:0x0C1424, roughness:0.92, metalness:0.05, transparent:true, opacity:0.9});
+  const plate = new THREE.Mesh(pg, pm); plate.rotation.x = -Math.PI/2; plate.receiveShadow = true; scene.add(plate);
+  const grid = new THREE.GridHelper(256, 32, 0x1E3A5F, 0x1A2E4A); grid.position.y = 0.2; grid.material.transparent = true; grid.material.opacity = 0.7; scene.add(grid);
+  // Border lines
+  const bpts = [[-128,.4,-128],[128,.4,-128],[128,.4,128],[-128,.4,128],[-128,.4,-128]].map(([x,y,z])=>new THREE.Vector3(x,y,z));
+  const bg = new THREE.BufferGeometry().setFromPoints(bpts);
+  scene.add(new THREE.Line(bg, new THREE.LineBasicMaterial({color:0x00E5FF,transparent:true,opacity:0.2})));
+  // Axis helper
+  const ax = new THREE.AxesHelper(40); ax.position.set(-120,0.5,-120); scene.add(ax);
+}
+buildPlate();
+
+// Clip plane
+const clipPlane = new THREE.Plane(new THREE.Vector3(0,-1,0), 0);
+let modelGroup = null, modelMesh = null, primaryGeo = null;
+let toolpathGroup = null;
+let modelBBox = new THREE.Box3();
+const raycaster = new THREE.Raycaster();
+const pointer = new THREE.Vector2();
+
+// ════════════════════════════════════════════════
+// RESIZE
+// ════════════════════════════════════════════════
+function onResize() {
+  const w = vpEl.clientWidth, h = vpEl.clientHeight;
+  renderer.setSize(w, h); camera.aspect = w/h; camera.updateProjectionMatrix();
+}
+new ResizeObserver(onResize).observe(vpEl);
+onResize();
+
+function animate() {
+  requestAnimationFrame(animate);
+  orbit.update();
+  renderer.render(scene, camera);
+}
+animate();
+
+// ════════════════════════════════════════════════
+// LOADERS
+// ════════════════════════════════════════════════
+const stlL = new STLLoader(), objL = new OBJLoader(), mfL = new ThreeMFLoader();
+
+async function handleFile(file) {
+  if (!file) return;
+  const ext = file.name.split('.').pop().toLowerCase();
+  setStatus(`Loading ${file.name}…`, 'busy');
+  setProgress(5);
+  try {
+    let geo;
+    if (ext==='stl') { geo = stlL.parse(await file.arrayBuffer()); geo.computeVertexNormals(); }
+    else if (ext==='obj') { const o = objL.parse(await file.text()); geo = mergeFromObj(o); }
+    else if (ext==='3mf') { const o = await load3mf(file); geo = mergeFromObj(o); }
+    else if (['step','stp'].includes(ext)) { geo = await loadStep(file); }
+    else { throw new Error('Unsupported format: ' + ext); }
+    setProgress(70);
+    spawnModel(geo, file.name);
+    setProgress(100);
+    setStatus('Model loaded ✓', 'good');
+  } catch(e) {
+    console.error(e);
+    setStatus('Load failed: ' + e.message, 'warn');
+    setProgress(0);
+  }
+}
+
+function mergeFromObj(obj) {
+  obj.updateMatrixWorld(true);
+  const geos = [];
+  obj.traverse(c => {
+    if (!c.isMesh) return;
+    let g = c.geometry.clone();
+    if (g.index) g = g.toNonIndexed();
+    g.applyMatrix4(c.matrixWorld);
+    if (!g.getAttribute('normal')) g.computeVertexNormals();
+    geos.push(g);
+  });
+  if (!geos.length) throw new Error('No mesh found');
+  const m = BGU.mergeGeometries(geos, false);
+  geos.forEach(g=>g.dispose());
+  return m;
+}
+
+function load3mf(file) {
+  return new Promise((res, rej) => {
+    const url = URL.createObjectURL(file);
+    mfL.load(url, o => { URL.revokeObjectURL(url); res(o); }, null, e => { URL.revokeObjectURL(url); rej(e); });
+  });
+}
+
+async function loadStep(file) {
+  if (typeof occtimportjs !== 'function') throw new Error('OCCT not loaded');
+  const occt = await occtimportjs({ locateFile: p => p.endsWith('.wasm') ? 'https://cdn.jsdelivr.net/npm/occt-import-js@0.0.24/dist/occt-import-js.wasm' : p });
+  const r = occt.ReadStepFile(new Uint8Array(await file.arrayBuffer()), null);
+  if (!r?.success || !r.meshes?.length) throw new Error('STEP parse failed');
+  const geos = [];
+  for (const md of r.meshes) {
+    const g = new THREE.BufferGeometry();
+    g.setAttribute('position', new THREE.Float32BufferAttribute(md.attributes.position.array, 3));
+    if (md.attributes.normal?.array) g.setAttribute('normal', new THREE.Float32BufferAttribute(md.attributes.normal.array, 3));
+    if (md.index?.array) { const fi=[]; for(const t of md.index.array) fi.push(...(Array.isArray(t)?t:[t])); g.setIndex(fi); }
+    let fg = g.index ? g.toNonIndexed() : g;
+    if (!fg.getAttribute('normal')) fg.computeVertexNormals();
+    geos.push(fg);
+  }
+  const merged = BGU.mergeGeometries(geos, false);
+  geos.forEach(g=>g.dispose());
+  return merged;
+}
+
+// ════════════════════════════════════════════════
+// MODEL SPAWN
+// ════════════════════════════════════════════════
+function spawnModel(geo, name) {
+  clearModel();
+  // Auto-scale
+  geo.computeBoundingBox();
+  const sz = geo.boundingBox.getSize(new THREE.Vector3());
+  const maxD = Math.max(sz.x, sz.y, sz.z);
+  let sc = 1;
+  if (maxD < 1) sc = 100/maxD;
+  else if (maxD < 5) sc = 80/maxD;
+  else if (maxD > 500) sc = 200/maxD;
+
+  // Center on plate
+  const center = geo.boundingBox.getCenter(new THREE.Vector3());
+  geo.translate(-center.x, -geo.boundingBox.min.y, -center.z);
+  geo.scale(sc, sc, sc);
+  geo.computeBoundingBox();
+
+  // Vertex colors
+  applyVertexColor(geo, new THREE.Color(S.colorHex));
+
+  const mat = new THREE.MeshStandardMaterial({vertexColors:true, roughness:0.68, metalness:0.05});
+  const mesh = new THREE.Mesh(geo, mat);
+  mesh.castShadow = true; mesh.receiveShadow = true;
+
+  modelGroup = new THREE.Group();
+  modelGroup.add(mesh);
+  scene.add(modelGroup);
+  modelMesh = mesh;
+  primaryGeo = geo;
+
+  modelBBox = new THREE.Box3().setFromObject(modelGroup);
+  S.totalLayers = Math.max(1, Math.ceil((modelBBox.max.y - modelBBox.min.y) / S.lh));
+  S.currentLayer = S.totalLayers;
+  S.modelLoaded = true;
+
+  // UI
+  document.getElementById('dropOver').style.display = 'none';
+  document.getElementById('vpTools').style.display = 'flex';
+  document.getElementById('modelHud').style.display = 'flex';
+  document.getElementById('hudFile').textContent = name;
+  document.getElementById('topFile').innerHTML = `<strong>${name}</strong>`;
+  document.getElementById('sliceBtn').disabled = false;
+
+  const dims = modelBBox.getSize(new THREE.Vector3());
+  const ds = `${dims.x.toFixed(0)}×${dims.y.toFixed(0)}×${dims.z.toFixed(0)} mm`;
+  document.getElementById('stDims').textContent = ds;
+  document.getElementById('sDims').textContent = ds;
+  document.getElementById('specCard').style.display = 'block';
+
+  updateLayerUI();
+  updateCost();
+  fitView();
+
+  if (S.tool === 'move' || S.tool === 'rotate') xform.attach(modelGroup);
+  if (S.viewMode === 'layer') applyClipMode();
+}
+
+function clearModel() {
+  xform.detach();
+  if (modelGroup) { scene.remove(modelGroup); disposeObj(modelGroup); modelGroup = null; modelMesh = null; }
+  clearToolpath();
+  S.modelLoaded = false; S.hasGcode = false;
+  document.getElementById('sliceBtn').disabled = true;
+}
+
+function clearToolpath() {
+  if (toolpathGroup) { scene.remove(toolpathGroup); disposeObj(toolpathGroup); toolpathGroup = null; }
+}
+
+function disposeObj(o) {
+  o.traverse(c => {
+    c.geometry?.dispose?.();
+    if (Array.isArray(c.material)) c.material.forEach(m=>m.dispose?.());
+    else c.material?.dispose?.();
+  });
+}
+
+function applyVertexColor(geo, color) {
+  const pos = geo.getAttribute('position');
+  const cols = new Float32Array(pos.count * 3);
+  for (let i=0; i<pos.count; i++) { cols[i*3]=color.r; cols[i*3+1]=color.g; cols[i*3+2]=color.b; }
+  geo.setAttribute('color', new THREE.BufferAttribute(cols, 3));
+}
+
+// ════════════════════════════════════════════════
+// VIEW MODES
+// ════════════════════════════════════════════════
+function setViewMode(mode) {
+  S.viewMode = mode;
+  document.querySelectorAll('#viewTabs .vtab').forEach(b => b.classList.toggle('on', b.dataset.mode === mode));
+  if (!modelMesh) return;
+  if (mode === 'solid') {
+    modelMesh.material.clippingPlanes = [];
+    modelMesh.material.opacity = 1; modelMesh.material.transparent = false;
+    modelMesh.visible = true;
+    document.getElementById('stLayers').textContent = S.totalLayers;
+  } else if (mode === 'layer') {
+    applyClipMode();
+  } else if (mode === 'xray') {
+    modelMesh.material.clippingPlanes = [];
+    modelMesh.material.opacity = 0.25; modelMesh.material.transparent = true;
+    modelMesh.visible = true;
+  }
+  // Update right panel
+  document.getElementById('rp-sub') && (document.getElementById('rpSub').textContent = mode === 'layer' ? `${S.currentLayer} / ${S.totalLayers} layers` : 'Switch to Layer View');
+}
+
+function applyClipMode() {
+  if (!modelMesh) return;
+  const h = (S.currentLayer / S.totalLayers) * (modelBBox.max.y - modelBBox.min.y);
+  clipPlane.constant = h;
+  modelMesh.material.clippingPlanes = [clipPlane];
+  modelMesh.material.transparent = false; modelMesh.material.opacity = 1;
+  modelMesh.visible = true;
+  // Toolpath clip too
+  if (toolpathGroup) toolpathGroup.traverse(c => {
+    if (c.material) c.material.clippingPlanes = [clipPlane];
+  });
+  updateLayerUI();
+}
+
+// ════════════════════════════════════════════════
+// LAYER SLIDER
+// ════════════════════════════════════════════════
+function updateLayerUI() {
+  const sl = document.getElementById('layerSlider');
+  sl.max = S.totalLayers;
+  sl.value = S.currentLayer;
+  const pct = S.totalLayers > 0 ? S.currentLayer / S.totalLayers : 1;
+  document.getElementById('vertFill').style.height = (pct * 100) + '%';
+  document.getElementById('vertThumb').style.bottom = (pct * 100) + '%';
+  document.getElementById('vertLabel').style.bottom = (pct * 100) + '%';
+  document.getElementById('vertLabel').textContent = S.currentLayer;
+  document.getElementById('layerNum').textContent = S.currentLayer;
+  document.getElementById('layerOf').textContent = `/ ${S.totalLayers}`;
+  const z = (S.currentLayer * S.lh).toFixed(2);
+  document.getElementById('layerZ').textContent = `Z = ${z} mm`;
+  document.getElementById('stLayers').textContent = S.totalLayers;
+  document.getElementById('rpSub').textContent = `Layer ${S.currentLayer} / ${S.totalLayers}`;
+  if (S.viewMode === 'layer') applyClipMode();
+}
+
+document.getElementById('layerSlider').addEventListener('input', e => {
+  S.currentLayer = parseInt(e.target.value);
+  if (S.viewMode !== 'layer') setViewMode('layer');
+  updateLayerUI();
+});
+
+function togglePlay() {
+  S.playing = !S.playing;
+  const btn = document.getElementById('playBtn');
+  if (S.playing) {
+    if (S.viewMode !== 'layer') setViewMode('layer');
+    if (S.currentLayer >= S.totalLayers) { S.currentLayer = 0; updateLayerUI(); }
+    btn.textContent = '⏸ Pause'; btn.classList.add('on');
+    S.playTimer = setInterval(() => {
+      if (S.currentLayer >= S.totalLayers) { togglePlay(); return; }
+      S.currentLayer++;
+      updateLayerUI();
+    }, 60);
+  } else {
+    clearInterval(S.playTimer);
+    btn.textContent = '▶ Play Animation'; btn.classList.remove('on');
+  }
+}
+window.togglePlay = togglePlay;
+
+// Keyboard shortcuts
+document.addEventListener('keydown', e => {
+  if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT' || e.target.tagName === 'TEXTAREA') return;
+  if (e.key === 'ArrowRight') { S.currentLayer = Math.min(S.totalLayers, S.currentLayer+1); updateLayerUI(); }
+  if (e.key === 'ArrowLeft')  { S.currentLayer = Math.max(1, S.currentLayer-1); updateLayerUI(); }
+  if (e.key === 'ArrowUp')    { S.currentLayer = Math.min(S.totalLayers, S.currentLayer+10); updateLayerUI(); }
+  if (e.key === 'ArrowDown')  { S.currentLayer = Math.max(1, S.currentLayer-10); updateLayerUI(); }
+  if (e.key === ' ') { e.preventDefault(); togglePlay(); }
+  if (e.key === 'f' || e.key === 'F') fitView();
+});
+
+// ════════════════════════════════════════════════
+// TOOLS
+// ════════════════════════════════════════════════
+function setTool(t) {
+  S.tool = t;
+  ['orbit','move','rotate','paint'].forEach(id => {
+    const b = document.getElementById('btn'+id.charAt(0).toUpperCase()+id.slice(1));
+    if (b) b.classList.toggle('on', id===t);
+  });
+  xform.detach();
+  orbit.enabled = true;
+  if (t==='move') { xform.setMode('translate'); if(modelGroup) xform.attach(modelGroup); }
+  if (t==='rotate') { xform.setMode('rotate'); if(modelGroup) xform.attach(modelGroup); }
+  if (t==='paint') orbit.enabled = false;
+  document.getElementById('hudMode').textContent = {orbit:'Orbit Camera',move:'Move Model',rotate:'Rotate Model',paint:'Paint Color'}[t] || 'Orbit Camera';
+  canvasEl.style.cursor = t === 'paint' ? 'crosshair' : 'grab';
+}
+window.setTool = setTool;
+
+// Paint
+canvasEl.addEventListener('pointerdown', e => {
+  if (S.tool !== 'paint' || !modelMesh) return;
+  const rect = canvasEl.getBoundingClientRect();
+  pointer.x = ((e.clientX-rect.left)/rect.width)*2-1;
+  pointer.y = -((e.clientY-rect.top)/rect.height)*2+1;
+  raycaster.setFromCamera(pointer, camera);
+  const hits = raycaster.intersectObject(modelMesh, false);
+  if (!hits.length) return;
+  const hit = hits[0];
+  const ca = modelMesh.geometry.getAttribute('color');
+  if (!ca) return;
+  const pc = new THREE.Color(S.colorHex);
+  const bi = (hit.faceIndex ?? (hit.face?.a ?? 0)) * 3; // Each face = 3 vertices (non-indexed)
+  for (let i=0; i<3; i++) ca.setXYZ(bi+i, pc.r, pc.g, pc.b);
+  ca.needsUpdate = true;
+});
+
+function toggleWire() {
+  S.wireframe = !S.wireframe;
+  if (modelMesh) modelMesh.material.wireframe = S.wireframe;
+  document.getElementById('btnWire').classList.toggle('on', S.wireframe);
+}
+window.toggleWire = toggleWire;
+
+function fitView() {
+  const target = modelGroup || scene;
+  const box = new THREE.Box3().setFromObject(target.type === 'Scene' ? scene : target);
+  if (box.isEmpty()) { camera.position.set(200,170,200); orbit.target.set(0,30,0); orbit.update(); return; }
+  const c = box.getCenter(new THREE.Vector3());
+  const sz = box.getSize(new THREE.Vector3());
+  const maxD = Math.max(sz.x, sz.y, sz.z);
+  const dist = maxD * 2.2;
+  const dir = new THREE.Vector3(1,0.8,1).normalize();
+  camera.position.copy(c).add(dir.multiplyScalar(dist));
+  orbit.target.copy(c);
+  camera.near = dist/100; camera.far = dist*10; camera.updateProjectionMatrix();
+  orbit.update();
+}
+window.fitView = fitView;
+
+// ════════════════════════════════════════════════
+// G-CODE PARSER — Color-coded by type
+// ════════════════════════════════════════════════
+function parseGCode(txt) {
+  const typeSegs = {}; // type → [x1,y1,z1, x2,y2,z2, ...]
+  let cx=0, cy=0, cz=0, ce=0;
+  let curType = 'TRAVEL';
+  let layerCount = 0;
+
+  for (const rawLine of txt.split(/\r?\n/)) {
+    const si = rawLine.indexOf(';');
+    const code = si>=0 ? rawLine.slice(0,si).trim() : rawLine.trim();
+    const cmt  = si>=0 ? rawLine.slice(si+1).trim() : '';
+
+    if (cmt.startsWith('TYPE:')) {
+      const t = cmt.slice(5).trim();
+      // Normalize Cura type names
+      if (t==='WALL-OUTER') curType='WALL-OUTER';
+      else if (t==='WALL-INNER') curType='WALL-INNER';
+      else if (t==='FILL') curType='FILL';
+      else if (t==='SKIN'||t==='TOP/BOTTOM'||t==='TOP SURFACE'||t==='BOTTOM SURFACE') curType='SKIN';
+      else if (t.includes('SUPPORT')) curType='SUPPORT';
+      else if (t==='BRIDGE') curType='BRIDGE';
+      else if (t==='SKIRT'||t==='BRIM') curType='SKIRT';
+      else curType='TRAVEL';
+      continue;
     }
+    if (cmt.startsWith('LAYER:') || cmt.startsWith('LAYER_COUNT')) { if(cmt.startsWith('LAYER:')) layerCount++; continue; }
 
-    function setProgress(percent) {
-      progressBarEl.style.width = Math.max(0, Math.min(100, percent)) + '%';
+    const uc = code.toUpperCase();
+    if (!uc.startsWith('G0') && !uc.startsWith('G1')) continue;
+    const px=cx, py=cy, pz=cz, pe=ce;
+    for (const tok of (code.match(/[A-Za-z][-+]?\d*\.?\d+/g)||[])) {
+      const a=tok[0].toUpperCase(), v=parseFloat(tok.slice(1));
+      if(a==='X') cx=v; else if(a==='Y') cy=v; else if(a==='Z') cz=v; else if(a==='E') ce=v;
     }
+    if (curType==='TRAVEL' || ce <= pe+1e-7) continue; // skip travel and non-extrusion
+    if (!typeSegs[curType]) typeSegs[curType] = [];
+    // G-code(X,Y,Z) → Three.js(X,Z,Y) where Z is up in gcode, Y is up in three
+    typeSegs[curType].push(px, pz, py,  cx, cz, cy);
+  }
+  return { typeSegs, layerCount };
+}
 
-    function formatTime(seconds) {
-      if (!Number.isFinite(seconds) || seconds <= 0) return '—';
-      const h = Math.floor(seconds / 3600);
-      const m = Math.floor((seconds % 3600) / 60);
-      return h > 0 ? `${h}h ${m}m` : `${m}m`;
-    }
+function buildToolpathMeshes(typeSegs) {
+  clearToolpath();
+  toolpathGroup = new THREE.Group();
+  const typeMap = {};
+  TOOLPATH_TYPES.forEach(t => typeMap[t.id] = t);
 
-    function frameObject(object3D) {
-      const box = new THREE.Box3().setFromObject(object3D);
-      const center = box.getCenter(new THREE.Vector3());
-      const size = box.getSize(new THREE.Vector3());
-      const maxDim = Math.max(size.x, size.y, size.z);
-      const fov = THREE.MathUtils.degToRad(camera.fov);
-      let distance = Math.max((maxDim / (2 * Math.tan(fov / 2))) * 1.65, 80);
-      
-      camera.position.copy(center.clone().add(new THREE.Vector3(1, 0.85, 1).normalize().multiplyScalar(distance)));
-      orbit.target.copy(center);
-      orbit.update();
-    }
-
-    // Geometry & Model Handling
-    function clearCurrentModel() {
-      if (state.currentObject) {
-        scene.remove(state.currentObject);
-        state.currentObject.traverse(node => {
-          if (node.geometry) node.geometry.dispose();
-          if (node.material) node.material.dispose();
-        });
-      }
-      state.currentObject = null;
-      state.currentMesh = null;
-      loadedFilenameEl.textContent = 'None';
-      topStatusEl.textContent = 'No model loaded';
-    }
-
-    function setLoadedObject(rootObject, filename) {
-      clearCurrentModel();
-      state.currentObject = rootObject;
-      scene.add(rootObject);
-      
-      rootObject.traverse(child => { if (child.isMesh) state.currentMesh = child; });
-      
-      if (state.currentMesh) {
-        state.currentMesh.geometry.computeBoundingBox();
-        const size = new THREE.Vector3();
-        state.currentMesh.geometry.boundingBox.getSize(size);
-        bboxStatEl.textContent = `${size.x.toFixed(1)} × ${size.y.toFixed(1)} × ${size.z.toFixed(1)}`;
-        frameObject(rootObject);
-      }
-      
-      loadedFilenameEl.textContent = filename;
-      topStatusEl.textContent = filename;
-      setStatus('Model loaded, ready for estimate', 'good');
-    }
-
-    // File Parsing
-    async function handleFile(file) {
-      if (!file) return;
-      try {
-        setStatus('Reading file…', 'busy');
-        const filename = file.name;
-        const ext = filename.split('.').pop().toLowerCase();
-        let geometry = null;
-        
-        if (ext === 'stl') geometry = stlLoader.parse(await file.arrayBuffer());
-        // Added barebones fallback for simple storefronts, keeping it light.
-        
-        if (!geometry) throw new Error('Format not supported by lightweight viewer.');
-        
-        const material = new THREE.MeshStandardMaterial({ color: 0x5DA8FF, metalness: 0.1, roughness: 0.8 });
-        const mesh = new THREE.Mesh(geometry, material);
-        const group = new THREE.Group();
-        group.add(mesh);
-        setLoadedObject(group, filename);
-        
-        // Auto-trigger slice when file is loaded for better UX
-        runSlice(); 
-      } catch (error) {
-        setStatus(`Load failed: ${error.message}`, 'warn');
-      }
-    }
-
-    // Slicer Integration (Using your worker logic)
-    function buildSliceWorker() {
-        const workerCode = `
-        import { CuraWASM } from 'https://esm.sh/cura-wasm?bundle';
-        import { resolveDefinition } from 'https://esm.sh/cura-wasm-definitions?bundle';
-        let slicer = null;
-        self.onmessage = async (event) => {
-          const { stl, settings } = event.data;
-          try {
-            slicer = new CuraWASM({
-              definition: resolveDefinition('ultimaker2'),
-              overrides: [
-                { key: 'infill_sparse_density', value: settings.infillDensity },
-                { key: 'infill_pattern', value: 'gyroid' },
-                { key: 'layer_height', value: 0.2 },
-                { scope: 'e0', key: 'material_diameter', value: 1.75 }
-              ],
-              transfer: true
-            });
-            slicer.on('progress', p => self.postMessage({ type: 'progress', percent: p }));
-            const result = await slicer.slice(stl, 'stl');
-            self.postMessage({ type: 'done', metadata: result.metadata });
-          } catch(e) { self.postMessage({ type: 'error', message: e.message }); }
-        };
-      `;
-      return new Worker(URL.createObjectURL(new Blob([workerCode], { type: 'text/javascript' })), { type: 'module' });
-    }
-
-    function meshToBinarySTLArrayBuffer(mesh) {
-        // Simplified STL exporter logic from your code
-        const geom = mesh.geometry.clone();
-        const pos = geom.getAttribute('position');
-        const triCount = Math.floor(pos.count / 3);
-        const buffer = new ArrayBuffer(84 + triCount * 50);
-        const view = new DataView(buffer);
-        view.setUint32(80, triCount, true);
-        let offset = 84;
-        for (let i = 0; i < pos.count; i += 3) {
-            view.setUint16(offset + 48, 0, true);
-            offset += 50;
-        }
-        return buffer;
-    }
-
-    async function runSlice() {
-      if (!state.currentMesh || state.busy) return;
-      try {
-        state.busy = true;
-        setStatus('Calculating optimal toolpath...', 'busy');
-        
-        const settings = { infillDensity: parseInt(strengthProfileEl.value) };
-        const stlBuffer = meshToBinarySTLArrayBuffer(state.currentMesh);
-        
-        state.worker = buildSliceWorker();
-        const result = await new Promise((resolve, reject) => {
-          state.worker.onmessage = e => {
-            if (e.data.type === 'progress') setProgress(e.data.percent);
-            if (e.data.type === 'done') resolve(e.data);
-            if (e.data.type === 'error') reject(new Error(e.data.message));
-          };
-          state.worker.postMessage({ stl: stlBuffer, settings }, [stlBuffer]);
-        });
-        
-        setStatus('Estimate Ready', 'good');
-        
-        // Calculate pricing
-        const option = materialEl.options[materialEl.selectedIndex];
-        const density = parseFloat(option.dataset.density);
-        const pricePerKg = parseFloat(option.dataset.price);
-        
-        // Mocking volume calculation for the sake of the demo script (Cura metadata mapping)
-        const mockVolumeCm3 = 45; // Replace with result.metadata.extrudedVolume logic
-        const massG = mockVolumeCm3 * density;
-        const cost = (massG / 1000) * pricePerKg;
-        
-        massStatEl.textContent = `${massG.toFixed(1)} g`;
-        costStatEl.textContent = `$${cost.toFixed(2)}`;
-        timeStatEl.textContent = formatTime(3600); // Replace with metadata.printTime
-
-      } catch(e) {
-        setStatus('Failed to calculate', 'warn');
-      } finally {
-        state.busy = false;
-        setProgress(0);
-      }
-    }
-
-    // Events
-    browseBtnEl.addEventListener('click', () => fileInputEl.click());
-    fileInputEl.addEventListener('change', e => handleFile(e.target.files[0]));
-    fitViewBtnEl.addEventListener('click', () => { if(state.currentObject) frameObject(state.currentObject); });
-    sliceBtnEl.addEventListener('click', runSlice);
-    materialEl.addEventListener('change', runSlice); // Auto-recalculate on change
-    strengthProfileEl.addEventListener('change', runSlice); // Auto-recalculate on change
-    
-    // Shopify Mailto Integration
-    sendEmailBtnEl.addEventListener('click', () => {
-        const name = customerNameEl.value || "Customer";
-        const notes = projectNotesEl.value || "No additional notes.";
-        const cost = costStatEl.textContent;
-        const mat = materialEl.options[materialEl.selectedIndex].text;
-        
-        const subject = encodeURIComponent(`New 3D Print Quote Request - ${name}`);
-        const body = encodeURIComponent(`Hi LayerWorks,\n\nI'd like a formal quote.\n\nMaterial: ${mat}\nEstimated Cost: ${cost}\nNotes: ${notes}\n\n*Please reply so I can attach my STL files!*`);
-        
-        window.location.href = `mailto:quotes@layerworksengineering.com?subject=${subject}&body=${body}`;
+  for (const [type, pts] of Object.entries(typeSegs)) {
+    if (!pts.length) continue;
+    const info = typeMap[type] || {color:'#ffffff'};
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute('position', new THREE.Float32BufferAttribute(new Float32Array(pts), 3));
+    const mat = new THREE.LineBasicMaterial({
+      color: new THREE.Color(info.color),
+      transparent: true, opacity: type==='SKIRT' ? 0.5 : 0.92,
+      clippingPlanes: S.viewMode === 'layer' ? [clipPlane] : [],
     });
+    const lines = new THREE.LineSegments(geo, mat);
+    lines.userData.typeId = type;
+    lines.visible = S.typeVisible[type] !== false;
+    toolpathGroup.add(lines);
+  }
+  scene.add(toolpathGroup);
+  // Hide solid model when showing toolpath
+  if (modelMesh) modelMesh.visible = false;
+  fitView();
+}
 
-    window.addEventListener('resize', () => {
-      camera.aspect = viewerEl.clientWidth / viewerEl.clientHeight;
-      camera.updateProjectionMatrix();
-      renderer.setSize(viewerEl.clientWidth, viewerEl.clientHeight);
+// Toggle type visibility from legend
+window.toggleType = function(id) {
+  S.typeVisible[id] = !S.typeVisible[id];
+  if (toolpathGroup) toolpathGroup.traverse(c => {
+    if (c.userData.typeId === id) c.visible = S.typeVisible[id];
+  });
+  document.querySelectorAll(`.legend-toggle[data-type="${id}"]`).forEach(el => el.classList.toggle('on', S.typeVisible[id]));
+};
+
+// Show/hide solid mesh
+window.showSolid = function() {
+  setViewMode('solid');
+  if (modelMesh) modelMesh.visible = true;
+  if (toolpathGroup) toolpathGroup.visible = false;
+};
+
+// ════════════════════════════════════════════════
+// CURA WASM WORKER
+// ════════════════════════════════════════════════
+function meshToSTLBuffer(mesh) {
+  mesh.updateMatrixWorld(true);
+  let src = mesh.geometry.index ? mesh.geometry.toNonIndexed() : mesh.geometry.clone();
+  src.applyMatrix4(mesh.matrixWorld);
+  const pos = src.getAttribute('position');
+  const nrm = src.getAttribute('normal');
+  const tc = Math.floor(pos.count/3);
+  const buf = new ArrayBuffer(84 + tc*50);
+  const dv = new DataView(buf);
+  for (let i=0;i<80;i++) dv.setUint8(i,0);
+  dv.setUint32(80, tc, true);
+  const a=new THREE.Vector3(), b=new THREE.Vector3(), c2=new THREE.Vector3(), n=new THREE.Vector3();
+  let off=84;
+  for (let i=0;i<pos.count;i+=3) {
+    if(nrm) n.set(nrm.getX(i),nrm.getY(i),nrm.getZ(i)).normalize();
+    else { a.fromBufferAttribute(pos,i); b.fromBufferAttribute(pos,i+1); c2.fromBufferAttribute(pos,i+2); n.subVectors(c2,b).cross(a.clone().sub(b)).normalize(); }
+    dv.setFloat32(off,n.x,true); dv.setFloat32(off+4,n.y,true); dv.setFloat32(off+8,n.z,true);
+    for(let v=0;v<3;v++){const idx=i+v; dv.setFloat32(off+12+v*12,pos.getX(idx),true); dv.setFloat32(off+12+v*12+4,pos.getY(idx),true); dv.setFloat32(off+12+v*12+8,pos.getZ(idx),true);}
+    dv.setUint16(off+48,0,true); off+=50;
+  }
+  src.dispose();
+  return buf;
+}
+
+function buildWorker() {
+  const code = `
+import { CuraWASM } from 'https://esm.sh/cura-wasm?bundle';
+import { resolveDefinition } from 'https://esm.sh/cura-wasm-definitions?bundle';
+let sl=null;
+self.onmessage=async({data})=>{
+  if(data.type!=='slice')return;
+  const {settings,machine,stl}=data;
+  try{
+    if(sl){try{sl.dispose()}catch{}} sl=null;
+    sl=new CuraWASM({
+      definition:resolveDefinition('ultimaker2'),
+      overrides:[
+        {key:'machine_width',value:machine.w},{key:'machine_depth',value:machine.d},{key:'machine_height',value:machine.h},
+        {key:'layer_height',value:settings.lh},{key:'layer_height_0',value:Math.max(settings.lh,0.2)},
+        {key:'infill_sparse_density',value:settings.infill},
+        {key:'top_layers',value:settings.top},{key:'bottom_layers',value:settings.bot},
+        {key:'wall_line_count',value:settings.walls},
+        {key:'infill_pattern',value:settings.pattern},
+        {key:'support_enable',value:settings.support},
+        {scope:'e0',key:'material_diameter',value:1.75},
+        {scope:'e0',key:'speed_print',value:150},{scope:'e0',key:'speed_infill',value:200},
+        {scope:'e0',key:'speed_wall',value:100},{scope:'e0',key:'speed_topbottom',value:80},
+        {scope:'e0',key:'material_print_temperature',value:220},{scope:'e0',key:'material_bed_temperature',value:60},
+        {scope:'e0',key:'skirt_line_count',value:1},
+      ],
+      transfer:true,verbose:false
     });
+    sl.on('progress',p=>self.postMessage({type:'progress',p}));
+    const r=await sl.slice(stl,'stl');
+    let gc='';
+    if(r.gcode instanceof ArrayBuffer) gc=new TextDecoder().decode(r.gcode);
+    else if(ArrayBuffer.isView(r.gcode)) gc=new TextDecoder().decode(r.gcode);
+    else if(typeof r.gcode==='string') gc=r.gcode;
+    self.postMessage({type:'done',gcode:gc,meta:r.metadata||{}});
+    try{sl.dispose()}catch{} sl=null;
+  }catch(e){
+    self.postMessage({type:'error',msg:e?.message||String(e)});
+    try{sl?.dispose()}catch{} sl=null;
+  }
+};`;
+  const url = URL.createObjectURL(new Blob([code], {type:'text/javascript'}));
+  return new Worker(url, {type:'module'});
+}
 
-    function animate() {
-      requestAnimationFrame(animate);
-      orbit.update();
-      renderer.render(scene, camera);
-    }
-    animate();
-  </script>
+async function runSlice() {
+  if (!modelMesh || S.busy) return;
+  S.busy = true;
+  document.getElementById('sliceBtn').disabled = true;
+  document.getElementById('sliceOver').style.display = 'flex';
+  setStatus('Preparing geometry…', 'busy'); setProgress(2);
+
+  try {
+    const stlBuf = meshToSTLBuffer(modelMesh);
+    const worker = buildWorker();
+    const result = await new Promise((res, rej) => {
+      worker.onmessage = ({data}) => {
+        if (data.type==='progress') { const p=Math.round(data.p||0); setProgress(p); document.getElementById('progBar').style.width=p+'%'; document.getElementById('progPct').textContent=p+'%'; document.getElementById('sliceSub').textContent=`Slicing… ${p}%`; }
+        else if (data.type==='done') res(data);
+        else if (data.type==='error') rej(new Error(data.msg));
+      };
+      worker.onerror = e => rej(new Error(e.message||'Worker failed'));
+      worker.postMessage({type:'slice', stl:stlBuf, settings:{lh:S.lh,infill:S.infill,top:S.top,bot:S.bot,walls:S.walls,pattern:S.pattern,support:S.support}, machine:{w:256,d:256,h:256}}, [stlBuf]);
+    });
+    worker.terminate();
+
+    setProgress(100);
+    document.getElementById('sliceSub').textContent = 'Building toolpath visualization…';
+
+    const {typeSegs, layerCount} = parseGCode(result.gcode);
+    buildToolpathMeshes(typeSegs);
+    S.hasGcode = true;
+    S.totalLayers = Math.max(layerCount, S.totalLayers);
+    S.currentLayer = S.totalLayers;
+
+    // Extract stats from gcode/meta
+    const meta = result.meta || {};
+    const timeS = meta.estimatedTime || meta.print_time || extractTime(result.gcode);
+    const vol = extractFilVol(meta, result.gcode);
+    const density = MATS[S.matIdx].d;
+    const massG = vol ? vol * density * 1000 : 0;
+    if (timeS) document.getElementById('stTime').textContent = fmtTime(timeS);
+    if (massG) { document.getElementById('stWeight').textContent = massG.toFixed(1)+'g'; document.getElementById('cvWeight').textContent = massG.toFixed(1)+' g'; }
+    updateCost(massG);
+    updateLayerUI();
+    setViewMode('layer');
+    setStatus('Slice complete — toolpath displayed ✓', 'good');
+
+  } catch(e) {
+    console.error(e);
+    setStatus('Slice failed: ' + e.message, 'warn');
+  }
+
+  S.busy = false;
+  document.getElementById('sliceBtn').disabled = false;
+  document.getElementById('sliceOver').style.display = 'none';
+}
+
+function extractTime(gc) { const m=gc.match(/;TIME:(\d+)/); return m ? parseInt(m[1]) : 0; }
+function extractFilVol(meta, gc) {
+  if (meta.extrudedVolume) return meta.extrudedVolume;
+  const used = meta.filamentUsed || meta.filament_used;
+  if (used) return (Math.PI * 0.875 * 0.875 * used) / 1000;
+  const m = gc.match(/;Filament used: ([\d.]+)/);
+  if (m) return parseFloat(m[1]);
+  return 0;
+}
+function fmtTime(s) { const h=Math.floor(s/3600), m=Math.floor((s%3600)/60); return h>0?`${h}h ${m}m`:`${m}m`; }
+
+// ════════════════════════════════════════════════
+// COST ESTIMATION
+// ════════════════════════════════════════════════
+function calcVol(geo) {
+  const pos = geo.getAttribute('position');
+  let vol=0; const a=new THREE.Vector3(), b=new THREE.Vector3(), c=new THREE.Vector3();
+  for(let i=0;i<pos.count;i+=3){ a.fromBufferAttribute(pos,i); b.fromBufferAttribute(pos,i+1); c.fromBufferAttribute(pos,i+2); vol+=a.dot(b.clone().cross(c))/6; }
+  return Math.abs(vol)/1000; // cm³
+}
+
+function updateCost(massGOverride) {
+  if (!S.modelLoaded) return;
+  const mat = MATS[S.matIdx];
+  let massG = massGOverride;
+  if (!massG && primaryGeo) {
+    const volCm3 = calcVol(primaryGeo);
+    const solidFrac = Math.min(1, ((S.top + S.bot) * S.lh) / Math.max((modelBBox.max.y - modelBBox.min.y), 0.01));
+    const fillFac = solidFrac + (1 - solidFrac) * (S.infill/100) * 0.85 + 0.08;
+    massG = volCm3 * fillFac * mat.d * 1000; // g
+  }
+  const massKg = (massG||0) / 1000;
+  const matCost = massKg * mat.p;
+  const modelH = (modelBBox.max.y - modelBBox.min.y);
+  const sz = modelBBox.getSize(new THREE.Vector3());
+  const areaLayers = (sz.x * sz.z) / 100;
+  const perimCm = 2*(sz.x+sz.z)/10;
+  const timePerLayer = (perimCm * S.walls + areaLayers * S.infill/100) / 12;
+  const totalTime_h = (timePerLayer * S.totalLayers) / 3600 * 1.4;
+  const overhead = Math.max(2, totalTime_h * 0.6);
+  const unitCost = matCost + overhead + 1.0;
+  const total = unitCost * S.qty;
+
+  document.getElementById('costEmpty').style.display = 'none';
+  document.getElementById('costRows').style.display = 'block';
+  document.getElementById('cvWeight').textContent = (massG||0).toFixed(1) + ' g';
+  document.getElementById('cvMat').textContent = '$' + matCost.toFixed(2);
+  document.getElementById('cvTime').textContent = totalTime_h < 1 ? Math.round(totalTime_h*60)+'m' : totalTime_h.toFixed(1)+'h';
+  document.getElementById('qtyDisp').textContent = S.qty;
+  document.getElementById('cvTotal').textContent = '$' + total.toFixed(2);
+  document.getElementById('stWeight').textContent = (massG||0).toFixed(1) + 'g';
+  document.getElementById('stCost').textContent = '$' + total.toFixed(2);
+  document.getElementById('stTime').textContent = totalTime_h < 1 ? Math.round(totalTime_h*60)+'m' : totalTime_h.toFixed(1)+'h';
+  document.getElementById('sMat').textContent = mat.n;
+  document.getElementById('sLH').textContent = S.lh + ' mm';
+  document.getElementById('sInfill').textContent = S.infill + '%';
+  document.getElementById('sVol').textContent = primaryGeo ? calcVol(primaryGeo).toFixed(2)+' cm³' : '—';
+}
+
+window.adjQty = function(d) { S.qty = Math.max(1, S.qty+d); updateCost(); };
+
+// ════════════════════════════════════════════════
+// STATUS
+// ════════════════════════════════════════════════
+function setStatus(txt, type='') {
+  document.getElementById('sText').textContent = txt;
+  const dot = document.getElementById('sDot');
+  dot.className = 'status-dot' + (type ? ' '+type : '');
+}
+function setProgress(p) {
+  document.getElementById('botProg').style.width = Math.min(100,p)+'%';
+  document.getElementById('progBar').style.width = Math.min(100,p)+'%';
+  document.getElementById('progPct').textContent = Math.round(p)+'%';
+}
+
+// ════════════════════════════════════════════════
+// UI BUILDERS
+// ════════════════════════════════════════════════
+function buildMaterialSelect() {
+  const sel = document.getElementById('selMat');
+  const fams = [...new Set(MATS.map(m=>m.fam))];
+  sel.innerHTML = '';
+  let current = null;
+  fams.forEach(fam => {
+    const og = document.createElement('optgroup');
+    og.label = '── ' + fam + ' ──';
+    MATS.forEach((m,i) => {
+      if (m.fam !== fam) return;
+      const op = document.createElement('option');
+      op.value = i; op.textContent = `${m.n} — $${m.p}/kg`;
+      og.appendChild(op);
+    });
+    sel.appendChild(og);
+  });
+  sel.addEventListener('change', () => {
+    S.matIdx = parseInt(sel.value);
+    buildColorGrid();
+    updateCost();
+    document.getElementById('sVol') && updateCost();
+  });
+}
+
+function buildColorGrid() {
+  const grid = document.getElementById('colorGrid');
+  const mat = MATS[S.matIdx];
+  grid.innerHTML = '';
+  mat.cl.forEach((hex, i) => {
+    const d = document.createElement('div');
+    d.className = 'cdot' + (i===0?' on':'');
+    d.style.background = hex;
+    d.title = hex;
+    d.addEventListener('click', () => {
+      S.colorHex = hex;
+      document.querySelectorAll('#colorGrid .cdot').forEach(x=>x.classList.remove('on'));
+      d.classList.add('on');
+      document.getElementById('colorName').textContent = hex;
+      if (modelMesh) {
+        applyVertexColor(modelMesh.geometry, new THREE.Color(hex));
+        modelMesh.geometry.getAttribute('color').needsUpdate = true;
+        modelMesh.material.color.set(hex);
+      }
+    });
+    grid.appendChild(d);
+  });
+  if (mat.cl.length) { S.colorHex = mat.cl[0]; document.getElementById('colorName').textContent = mat.cl[0]; }
+}
+
+function buildLHGrid() {
+  const grid = document.getElementById('lhGrid');
+  LH_PRESETS.forEach(({v, label, sub, on}) => {
+    const b = document.createElement('button');
+    b.className = 'lh-btn' + (on?' on':'');
+    b.innerHTML = `${label}<small>${sub}</small>`;
+    b.addEventListener('click', () => {
+      S.lh = v;
+      document.querySelectorAll('#lhGrid .lh-btn').forEach(x=>x.classList.remove('on'));
+      b.classList.add('on');
+      document.getElementById('lhDisp').textContent = v+' mm';
+      if (S.modelLoaded) { S.totalLayers = Math.ceil((modelBBox.max.y - modelBBox.min.y)/v); S.currentLayer = S.totalLayers; updateLayerUI(); }
+      updateCost();
+    });
+    grid.appendChild(b);
+  });
+}
+
+function buildPatGrid() {
+  const grid = document.getElementById('patGrid');
+  INFILL_PATTERNS.forEach(({id, label, desc}) => {
+    const b = document.createElement('button');
+    b.className = 'pat-btn' + (id===S.pattern?' on':'');
+    b.innerHTML = `${label}<span>${desc}</span>`;
+    b.addEventListener('click', () => {
+      S.pattern = id;
+      document.querySelectorAll('#patGrid .pat-btn').forEach(x=>x.classList.remove('on'));
+      b.classList.add('on');
+    });
+    grid.appendChild(b);
+  });
+}
+
+function buildLegend() {
+  const wrap = document.getElementById('legendRows');
+  wrap.innerHTML = '';
+  TOOLPATH_TYPES.forEach(({id, label, color}) => {
+    const row = document.createElement('div');
+    row.className = 'legend-row';
+    row.innerHTML = `<div class="legend-dot" style="background:${color}"></div><span>${label}</span><div class="legend-toggle on" data-type="${id}" title="Toggle visibility" onclick="toggleType('${id}')"></div>`;
+    wrap.appendChild(row);
+  });
+}
+
+// Stepper adjustments
+window.adj = function(k, d) {
+  if (k==='walls') { S.walls = Math.max(1, Math.min(8, S.walls+d)); document.getElementById('wVal').textContent=S.walls; document.getElementById('wDisp').textContent=S.walls; }
+  if (k==='top')   { S.top   = Math.max(1, Math.min(16,S.top+d));   document.getElementById('tVal').textContent=S.top;   document.getElementById('tDisp').textContent=S.top; }
+  if (k==='bot')   { S.bot   = Math.max(1, Math.min(16,S.bot+d));   document.getElementById('bVal').textContent=S.bot;   document.getElementById('bDisp').textContent=S.bot; }
+  updateCost();
+};
+
+// Infill slider
+document.getElementById('ifSlider').addEventListener('input', e => {
+  S.infill = parseInt(e.target.value);
+  document.getElementById('ifDisp').textContent = S.infill + '%';
+  updateCost();
+});
+
+// Support toggle
+document.getElementById('suppToggle').addEventListener('change', e => {
+  S.support = e.target.checked;
+  const en = !e.target.checked;
+  ['suppTypeRow','suppIntRow'].forEach(id => { document.getElementById(id).style.opacity = en?'.45':'1'; document.getElementById(id).style.pointerEvents = en?'none':'auto'; });
+});
+
+// View tabs
+document.querySelectorAll('#viewTabs .vtab').forEach(b => b.addEventListener('click', () => setViewMode(b.dataset.mode)));
+
+// Slice button
+document.getElementById('sliceBtn').addEventListener('click', runSlice);
+
+// File inputs
+document.getElementById('fileInput').addEventListener('change', e => { if(e.target.files[0]) handleFile(e.target.files[0]); e.target.value=''; });
+document.getElementById('newFileInput').addEventListener('change', e => { if(e.target.files[0]) handleFile(e.target.files[0]); e.target.value=''; });
+
+// Drag & drop
+const vpEl2 = document.getElementById('vp');
+const dropEl = document.getElementById('dropOver');
+vpEl2.addEventListener('dragover', e => { e.preventDefault(); dropEl.classList.add('dragover'); });
+vpEl2.addEventListener('dragleave', e => { if(!vpEl2.contains(e.relatedTarget)) dropEl.classList.remove('dragover'); });
+vpEl2.addEventListener('drop', e => { e.preventDefault(); dropEl.classList.remove('dragover'); if(e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]); });
+dropEl.addEventListener('click', e => { if(e.target.tagName!=='BUTTON'&&e.target.tagName!=='INPUT') document.getElementById('fileInput').click(); });
+
+// Accordion toggle
+window.tog = function(header) {
+  const body = header.nextElementSibling;
+  const caret = header.querySelector('.acc-caret');
+  const open = body.classList.toggle('open');
+  if (caret) caret.style.transform = open ? 'rotate(0deg)' : 'rotate(-90deg)';
+};
+
+// ════════════════════════════════════════════════
+// BOOT
+// ════════════════════════════════════════════════
+buildMaterialSelect();
+buildColorGrid();
+buildLHGrid();
+buildPatGrid();
+buildLegend();
+setStatus('Ready — drag & drop or upload a 3D file to begin');
+
+// Initial hint
+document.getElementById('layerNum').textContent = '—';
+document.getElementById('layerOf').textContent = '';
+document.getElementById('layerZ').textContent = 'Load a model first';
+</script>
 </body>
 </html>
