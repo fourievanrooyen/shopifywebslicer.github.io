@@ -488,11 +488,11 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:15px;heigh
       <button class="vtool on" id="btnOrbit" onclick="setTool('orbit')">⟳ Orbit</button>
       <button class="vtool" id="btnMove" onclick="setTool('move')">✥ Move</button>
       <button class="vtool" id="btnRotate" onclick="setTool('rotate')">↻ Rotate</button>
-      <button class="vtool" id="btnPaint" onclick="setTool('paint')">🎨 Paint</button>
       <div class="vtool-div"></div>
       <button class="vtool" onclick="autoCenter()" title="Center model on build plate XZ">⊕ Center</button>
       <button class="vtool" onclick="autoOnBed()" title="Drop model flush to bed (Y=0)">⬇ On Bed</button>
       <button class="vtool" id="btnAutoDetect" onclick="autoDetect()" title="Scale & position model to fit within 256×256×256 build volume">⚠ Auto-Fit</button>
+      <button class="vtool" onclick="autoRotate()" title="Test all orientations and choose the one with best bed stability and minimal support">⟳ Auto-Rotate</button>
       <div class="vtool-div"></div>
       <button class="vtool" onclick="fitView()">⊡ Fit View</button>
       <button class="vtool" id="btnWire" onclick="toggleWire()">⬡ Wire</button>
@@ -518,6 +518,15 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:15px;heigh
       <div class="drop-title">Drop your 3D file here</div>
       <div class="drop-sub">STL · OBJ · 3MF · STEP supported</div>
       <button class="drop-browse" onclick="document.getElementById('fileInput').click()">Choose File</button>
+    </div>
+
+    <!-- Build volume warning banner -->
+    <div id="buildVolumeWarn" style="display:none;position:absolute;top:60px;left:50%;transform:translateX(-50%);
+      background:rgba(251,191,36,0.12);border:1px solid rgba(251,191,36,0.5);border-radius:9px;
+      padding:10px 18px;z-index:12;align-items:center;gap:10px;backdrop-filter:blur(10px);
+      font-size:12px;font-weight:600;color:#FBBF24;white-space:nowrap;pointer-events:none">
+      <span style="font-size:16px">⚠</span>
+      <span id="buildVolumeWarnText">Model exceeds 256×256×256 mm build volume — slicing disabled</span>
     </div>
 
     <!-- Slice progress overlay -->
@@ -842,19 +851,19 @@ async function loadStep(file) {
 // ════════════════════════════════════════════════
 function spawnModel(geo, name) {
   clearModel();
-  // Auto-scale
+  // Unit conversion only — never scale down to fit build volume
   geo.computeBoundingBox();
-  const sz = geo.boundingBox.getSize(new THREE.Vector3());
-  const maxD = Math.max(sz.x, sz.y, sz.z);
+  const sz0 = geo.boundingBox.getSize(new THREE.Vector3());
+  const maxD = Math.max(sz0.x, sz0.y, sz0.z);
   let sc = 1;
-  if (maxD < 1) sc = 100/maxD;
-  else if (maxD < 5) sc = 80/maxD;
-  else if (maxD > 500) sc = 200/maxD;
+  if (maxD < 0.001)  sc = 100;         // likely meters → mm
+  else if (maxD < 1) sc = 150 / maxD;  // sub-mm → reasonable mm
+  else if (maxD < 5) sc = 80  / maxD;  // likely cm → mm
 
-  // Center on plate
+  // Center XZ, sit on bed
   const center = geo.boundingBox.getCenter(new THREE.Vector3());
   geo.translate(-center.x, -geo.boundingBox.min.y, -center.z);
-  geo.scale(sc, sc, sc);
+  if (sc !== 1) geo.scale(sc, sc, sc);
   geo.computeBoundingBox();
 
   // Vertex colors
@@ -892,7 +901,7 @@ function spawnModel(geo, name) {
   updateLayerUI();
   updateCost();
   fitView();
-  updateDimsUI(); // will warn if outside build volume
+  updateDimsUI(); // checks size and warns / locks slice if outside volume
 
   if (S.tool === 'move' || S.tool === 'rotate') xform.attach(modelGroup);
   if (S.viewMode === 'layer') applyClipMode();
@@ -950,12 +959,13 @@ function setViewMode(mode) {
 
 function applyClipMode() {
   if (!modelMesh) return;
-  const h = (S.currentLayer / S.totalLayers) * (modelBBox.max.y - modelBBox.min.y);
+  // Use world-space min.y so clip stays correct even when model is moved up/down
+  const modelH = modelBBox.max.y - modelBBox.min.y;
+  const h = modelBBox.min.y + (S.currentLayer / S.totalLayers) * modelH;
   clipPlane.constant = h;
   modelMesh.material.clippingPlanes = [clipPlane];
   modelMesh.material.transparent = false; modelMesh.material.opacity = 1;
   modelMesh.visible = true;
-  // Toolpath clip too
   if (toolpathGroup) toolpathGroup.traverse(c => {
     if (c.material) c.material.clippingPlanes = [clipPlane];
   });
@@ -1082,12 +1092,13 @@ window.fitView = fitView;
 // ── Auto-Center: centres model XZ on plate, keeps current Y ────────
 function autoCenter() {
   if (!modelGroup) return;
+  modelGroup.updateMatrixWorld(true);
   const box = new THREE.Box3().setFromObject(modelGroup);
   const c = box.getCenter(new THREE.Vector3());
   modelGroup.position.x -= c.x;
   modelGroup.position.z -= c.z;
   modelBBox = new THREE.Box3().setFromObject(modelGroup);
-  updateDimsUI();
+  refreshAfterTransform();
   setStatus('Model centred on build plate ✓', 'good');
 }
 window.autoCenter = autoCenter;
@@ -1095,66 +1106,181 @@ window.autoCenter = autoCenter;
 // ── Auto On Bed: drops model so its lowest point sits at Y=0 ───────
 function autoOnBed() {
   if (!modelGroup) return;
+  modelGroup.updateMatrixWorld(true);
   const box = new THREE.Box3().setFromObject(modelGroup);
   modelGroup.position.y -= box.min.y;
   modelBBox = new THREE.Box3().setFromObject(modelGroup);
-  updateDimsUI();
+  refreshAfterTransform();
   setStatus('Model placed on bed ✓', 'good');
 }
 window.autoOnBed = autoOnBed;
 
-// ── Auto-Detect: checks build volume; scales down if outside 256³ ──
+// ── Auto-Detect: checks build volume and warns — never scales ──────
 function autoDetect() {
-  if (!modelGroup) return;
-  const btn = document.getElementById('btnAutoDetect');
-
-  // First run center + on-bed
-  autoOnBed();
-  autoCenter();
-
-  const box = new THREE.Box3().setFromObject(modelGroup);
-  const sz = box.getSize(new THREE.Vector3());
-  const maxD = Math.max(sz.x, sz.y, sz.z);
-  const LIMIT = 256;
-
-  if (maxD <= LIMIT && sz.x <= LIMIT && sz.y <= LIMIT && sz.z <= LIMIT) {
-    btn.classList.remove('on');
-    btn.style.color = '';
-    setStatus(`Model fits in 256×256×256 build volume ✓  (${sz.x.toFixed(0)}×${sz.y.toFixed(0)}×${sz.z.toFixed(0)} mm)`, 'good');
-    return;
-  }
-
-  // Scale down uniformly to fit
-  const scaleFactor = (LIMIT * 0.97) / maxD;
-  const c = box.getCenter(new THREE.Vector3());
-  modelGroup.position.x -= c.x; modelGroup.position.z -= c.z; // keep centred during scale
-  modelGroup.scale.multiplyScalar(scaleFactor);
-
-  // Recentre and re-bed after scale
-  autoOnBed();
-  autoCenter();
+  if (!modelGroup || !modelMesh) return;
+  bakeGroupTransform();
   modelBBox = new THREE.Box3().setFromObject(modelGroup);
-
-  const newSz = modelBBox.getSize(new THREE.Vector3());
-  btn.classList.remove('on');
-  btn.style.color = '';
-  setStatus(`Model scaled to fit: ${(scaleFactor*100).toFixed(0)}% → ${newSz.x.toFixed(0)}×${newSz.y.toFixed(0)}×${newSz.z.toFixed(0)} mm`, 'warn');
-  updateDimsUI();
+  const sz = modelBBox.getSize(new THREE.Vector3());
+  if (sz.x > 256 || sz.y > 256 || sz.z > 256) {
+    setStatus(`⚠ Model exceeds 256×256×256 build volume (${sz.x.toFixed(0)}×${sz.y.toFixed(0)}×${sz.z.toFixed(0)} mm) — cannot slice`, 'warn');
+  } else {
+    centerAndBed();
+    setStatus(`✓ Model fits in build volume  (${sz.x.toFixed(0)}×${sz.y.toFixed(0)}×${sz.z.toFixed(0)} mm)`, 'good');
+  }
+  refreshAfterTransform();
   fitView();
 }
 window.autoDetect = autoDetect;
 
-// Helper — refresh dimension readouts after transform ops
+// ── Auto-Rotate: tests orientations, picks best for bed stability ───
+function autoRotate() {
+  if (!modelGroup || !modelMesh) return;
+  setStatus('Analysing optimal orientation…', 'busy');
+
+  // Bake any current transforms first
+  bakeGroupTransform();
+
+  // 6 cardinal orientations: [rotX, rotZ] pairs to try
+  const candidates = [
+    {rx:0,    rz:0,    label:'Original'},
+    {rx:Math.PI/2,  rz:0,    label:'Front down'},
+    {rx:-Math.PI/2, rz:0,    label:'Back down'},
+    {rx:0,    rz:Math.PI/2,  label:'Right side down'},
+    {rx:0,    rz:-Math.PI/2, label:'Left side down'},
+    {rx:Math.PI,rz:0,    label:'Flipped upside down'},
+    // 45° diagonals to catch wedge-shaped parts
+    {rx:Math.PI/4, rz:0,   label:'45° front tilt'},
+    {rx:0,  rz:Math.PI/4,  label:'45° side tilt'},
+  ];
+
+  // Score each orientation: lower = better
+  // Criteria: (1) minimise height (print time), (2) maximise bottom face area (stability)
+  function scoreOrientation(rx, rz) {
+    const geo = modelMesh.geometry.clone();
+    const m4 = new THREE.Matrix4().makeRotationFromEuler(new THREE.Euler(rx, 0, rz, 'XYZ'));
+    geo.applyMatrix4(m4);
+    geo.computeBoundingBox();
+
+    const bb = geo.boundingBox;
+    const height = bb.max.y - bb.min.y;
+    const footX  = bb.max.x - bb.min.x;
+    const footZ  = bb.max.z - bb.min.z;
+
+    // Penalty = height (want short) / foot area (want large base)
+    // Count bottom-facing triangles to estimate real floor contact
+    let bottomFaceArea = 0;
+    const pos = geo.getAttribute('position');
+    const a = new THREE.Vector3(), b = new THREE.Vector3(), c = new THREE.Vector3();
+    for (let i = 0; i < pos.count; i += 3) {
+      a.fromBufferAttribute(pos, i); b.fromBufferAttribute(pos, i+1); c.fromBufferAttribute(pos, i+2);
+      const normal = new THREE.Vector3().crossVectors(b.clone().sub(a), c.clone().sub(a));
+      // downward-facing triangles close to min.y = good contact area
+      if (normal.y < -0.5) {
+        const midY = (a.y + b.y + c.y) / 3;
+        if (midY < bb.min.y + height * 0.08) {
+          bottomFaceArea += normal.length() / 2;
+        }
+      }
+    }
+
+    const footArea = footX * footZ;
+    // Score: heavily penalise tall prints, reward contact area
+    const score = height * 1.5 - bottomFaceArea * 2 - footArea * 0.01;
+    geo.dispose();
+    return score;
+  }
+
+  let bestScore = Infinity, bestRx = 0, bestRz = 0, bestLabel = 'Original';
+  for (const {rx, rz, label} of candidates) {
+    const s = scoreOrientation(rx, rz);
+    if (s < bestScore) { bestScore = s; bestRx = rx; bestRz = rz; bestLabel = label; }
+  }
+
+  // Apply best rotation to geometry
+  if (bestRx !== 0 || bestRz !== 0) {
+    const m4 = new THREE.Matrix4().makeRotationFromEuler(new THREE.Euler(bestRx, 0, bestRz, 'XYZ'));
+    modelMesh.geometry.applyMatrix4(m4);
+    modelMesh.geometry.computeBoundingBox();
+  }
+
+  centerAndBed();
+  modelBBox = new THREE.Box3().setFromObject(modelGroup);
+  refreshAfterTransform();
+  fitView();
+  setStatus(`Auto-Rotate: "${bestLabel}" chosen as optimal orientation ✓`, 'good');
+}
+window.autoRotate = autoRotate;
+
+// ── Bake group-level scale/rotation into geometry ─────────────────
+function bakeGroupTransform() {
+  if (!modelGroup || !modelMesh) return;
+  modelGroup.updateMatrixWorld(true);
+
+  // Decompose group transform — if any scale or rotation exists, bake into geo
+  const sc = new THREE.Vector3(), qt = new THREE.Quaternion(), tr = new THREE.Vector3();
+  modelGroup.matrixWorld.decompose(tr, qt, sc);
+
+  const hasScale = Math.abs(sc.x - 1) > 0.001 || Math.abs(sc.y - 1) > 0.001 || Math.abs(sc.z - 1) > 0.001;
+  const hasRot   = Math.abs(qt.x) > 0.001 || Math.abs(qt.y) > 0.001 || Math.abs(qt.z) > 0.001;
+
+  if (hasScale || hasRot) {
+    // Apply only rotation + scale (not translation) into geometry
+    const bakeM = new THREE.Matrix4().compose(new THREE.Vector3(), qt, sc);
+    modelMesh.geometry.applyMatrix4(bakeM);
+    modelMesh.geometry.computeBoundingBox();
+    // Reset group to identity scale/rotation, keep position
+    modelGroup.scale.set(1, 1, 1);
+    modelGroup.quaternion.set(0, 0, 0, 1);
+  }
+}
+
+// ── Centre XZ and drop on bed in one call ─────────────────────────
+function centerAndBed() {
+  if (!modelGroup) return;
+  modelGroup.updateMatrixWorld(true);
+  const box = new THREE.Box3().setFromObject(modelGroup);
+  const c = box.getCenter(new THREE.Vector3());
+  modelGroup.position.x -= c.x;
+  modelGroup.position.z -= c.z;
+  modelGroup.position.y -= box.min.y + modelGroup.position.y; // floor to 0
+  // re-read after position change
+  modelGroup.updateMatrixWorld(true);
+  modelBBox = new THREE.Box3().setFromObject(modelGroup);
+}
+
+// ── Refresh layer count and bottom-bar dims after any transform ────
+function refreshAfterTransform() {
+  modelBBox = new THREE.Box3().setFromObject(modelGroup);
+  S.totalLayers = Math.max(1, Math.ceil((modelBBox.max.y - modelBBox.min.y) / S.lh));
+  S.currentLayer = S.totalLayers;
+  updateDimsUI();
+  updateLayerUI();
+  updateCost();
+}
+
+// Helper — refresh dimension readouts and enforce build-volume check
 function updateDimsUI() {
   if (!modelBBox) return;
   const sz = modelBBox.getSize(new THREE.Vector3());
   const ds = `${sz.x.toFixed(0)}×${sz.y.toFixed(0)}×${sz.z.toFixed(0)} mm`;
   document.getElementById('stDims').textContent = ds;
   const sdEl = document.getElementById('sDims'); if (sdEl) sdEl.textContent = ds;
-  // Warn if outside build volume
-  const btn = document.getElementById('btnAutoDetect');
+
   const outside = sz.x > 256 || sz.y > 256 || sz.z > 256;
+  const btn = document.getElementById('btnAutoDetect');
   if (btn) { btn.classList.toggle('on', outside); btn.style.color = outside ? 'var(--warn)' : ''; }
+
+  // Lock slice and show persistent warning
+  const sliceBtn = document.getElementById('sliceBtn');
+  const warn = document.getElementById('buildVolumeWarn');
+  if (outside) {
+    if (sliceBtn) { sliceBtn.disabled = true; sliceBtn.title = 'Model exceeds 256×256×256 build volume — cannot slice'; }
+    if (warn) warn.style.display = 'flex';
+    setStatus(`⚠ Model is ${sz.x.toFixed(0)}×${sz.y.toFixed(0)}×${sz.z.toFixed(0)} mm — exceeds 256×256×256 build volume. Cannot slice.`, 'warn');
+  } else {
+    if (sliceBtn && S.modelLoaded) { sliceBtn.disabled = false; sliceBtn.title = ''; }
+    if (warn) warn.style.display = 'none';
+  }
 }
 
 // ════════════════════════════════════════════════
