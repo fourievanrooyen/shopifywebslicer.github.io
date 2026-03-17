@@ -17,14 +17,10 @@
   --green:#22D17A;--warn:#FBBF24;--danger:#FF5A5A;--orange:#FF8F00;
   --f:'Inter',system-ui,sans-serif;--m:'JetBrains Mono',monospace;
   --lh:56px;--sb:310px;--rp:200px;--rad:10px;--shadow:0 8px 24px rgba(0,0,0,.4);
-  /* toolpath colors */
-  --c-outer:#FF8F00;--c-inner:#FFB300;--c-infill:#3B82F6;
-  --c-skin:#22D17A;--c-support:#EF4444;--c-bridge:#00E5FF;--c-skirt:#6B7280;
 }
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);font-family:var(--f);-webkit-font-smoothing:antialiased;font-size:13px}
 
-/* ══ TOPBAR ══════════════════════════════════════════ */
 .topbar{height:var(--lh);display:flex;align-items:center;gap:8px;padding:0 14px;
   background:rgba(8,12,20,.95);border-bottom:1px solid var(--border);
   backdrop-filter:blur(12px);z-index:20;flex-shrink:0}
@@ -38,7 +34,6 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fon
 .topbar-file{flex:1;font-size:12px;color:var(--muted);font-family:var(--m);
   overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .topbar-file strong{color:var(--text)}
-
 .view-tabs{display:flex;gap:2px;background:rgba(255,255,255,.04);
   border:1px solid var(--border);border-radius:8px;padding:3px}
 .vtab{padding:5px 13px;border-radius:6px;font-size:11px;font-weight:600;
@@ -46,24 +41,20 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fon
   transition:all .15s;white-space:nowrap;font-family:var(--f)}
 .vtab:hover{color:var(--text)}
 .vtab.on{background:var(--cyan15);color:var(--cyan);border:1px solid rgba(0,229,255,.2)}
-
 .slice-btn{padding:9px 20px;background:var(--cyan);color:#080C14;font-weight:700;
   border:none;border-radius:8px;cursor:pointer;font-size:13px;font-family:var(--f);
   transition:all .2s;white-space:nowrap;flex-shrink:0}
 .slice-btn:hover{filter:brightness(1.12);box-shadow:0 0 18px rgba(0,229,255,.35)}
 .slice-btn:disabled{opacity:.45;cursor:not-allowed}
 
-/* ══ LAYOUT ══════════════════════════════════════════ */
 .app-body{display:flex;height:calc(100vh - var(--lh) - 48px)}
 
-/* ══ LEFT SIDEBAR ════════════════════════════════════ */
 .lsb{width:var(--sb);min-width:var(--sb);background:var(--bg2);
   border-right:1px solid var(--border);overflow-y:auto;overflow-x:hidden;
   display:flex;flex-direction:column}
 .lsb::-webkit-scrollbar{width:4px}
 .lsb::-webkit-scrollbar-thumb{background:var(--card2);border-radius:2px}
 
-/* Accordion */
 .acc-header{display:flex;align-items:center;justify-content:space-between;
   padding:11px 14px;cursor:pointer;user-select:none;border-bottom:1px solid var(--border);
   transition:background .15s}
@@ -75,7 +66,6 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fon
 .acc-body{padding:14px;border-bottom:1px solid var(--border);display:none}
 .acc-body.open{display:block}
 
-/* Fields */
 .field{margin-bottom:14px}
 .field:last-child{margin-bottom:0}
 .field>label{display:flex;justify-content:space-between;align-items:center;
@@ -92,16 +82,13 @@ select{cursor:pointer;appearance:none;
 select:focus,input[type=number]:focus{border-color:rgba(0,229,255,.35)}
 select option{background:#111827}
 select optgroup{color:var(--cyan);font-style:normal;font-weight:700;background:var(--bg2)}
-
 input[type=range]{-webkit-appearance:none;appearance:none;width:100%;
   height:4px;background:var(--card2);border-radius:2px;outline:none;cursor:pointer}
 input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:15px;height:15px;
-  border-radius:50%;background:var(--cyan);cursor:pointer;
-  box-shadow:0 0 8px rgba(0,229,255,.4)}
+  border-radius:50%;background:var(--cyan);cursor:pointer;box-shadow:0 0 8px rgba(0,229,255,.4)}
 .range-row{display:flex;justify-content:space-between;font-size:9px;
   color:var(--dim);margin-top:4px;font-family:var(--m)}
 
-/* Stepper */
 .stepper{display:flex;align-items:center;gap:0;background:var(--card);
   border:1px solid var(--border2);border-radius:7px;overflow:hidden;height:34px}
 .stepper button{background:transparent;border:none;color:var(--muted);
@@ -110,7 +97,6 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:15px;heigh
 .stepper span{flex:1;text-align:center;font-family:var(--m);font-weight:600;
   font-size:13px;border-left:1px solid var(--border);border-right:1px solid var(--border)}
 
-/* Layer height presets */
 .lh-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:5px}
 .lh-btn{padding:6px 4px;text-align:center;border-radius:6px;border:1px solid var(--border2);
   background:transparent;color:var(--muted);cursor:pointer;font-size:10px;
@@ -119,7 +105,6 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:15px;heigh
 .lh-btn.on{border-color:var(--cyan);background:var(--cyan15);color:var(--cyan)}
 .lh-btn small{display:block;font-size:8.5px;opacity:.7}
 
-/* Pattern buttons */
 .pat-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px}
 .pat-btn{padding:8px;text-align:left;border-radius:7px;border:1px solid var(--border2);
   background:transparent;color:var(--muted);cursor:pointer;font-size:11px;
@@ -128,7 +113,6 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:15px;heigh
 .pat-btn:hover{border-color:rgba(0,229,255,.3)}
 .pat-btn.on{border-color:var(--cyan);background:var(--cyan15);color:var(--cyan)}
 
-/* Toggle */
 .toggle-row{display:flex;align-items:center;justify-content:space-between;
   padding:8px 0;border-bottom:1px solid rgba(255,255,255,.04)}
 .toggle-row:last-child{border-bottom:none}
@@ -143,14 +127,12 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:15px;heigh
   left:2px;bottom:2px;background:var(--muted);border-radius:50%;transition:.2s}
 .toggle input:checked+.toggle-track::before{transform:translateX(16px);background:var(--cyan)}
 
-/* Color dots */
 .color-grid{display:flex;flex-wrap:wrap;gap:6px}
 .cdot{width:24px;height:24px;border-radius:50%;cursor:pointer;
   transition:all .15s;border:2px solid transparent;flex-shrink:0}
 .cdot:hover{transform:scale(1.2)}
 .cdot.on{border-color:var(--cyan);box-shadow:0 0 10px rgba(0,229,255,.4);transform:scale(1.15)}
 
-/* Cost panel */
 .cost-card{background:var(--card);border-radius:var(--rad);border:1px solid var(--border);padding:13px}
 .cost-row{display:flex;justify-content:space-between;align-items:center;
   padding:5px 0;font-size:11.5px;color:var(--muted);
@@ -161,13 +143,11 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:15px;heigh
   padding:10px 0 0;margin-top:6px;border-top:1px solid var(--border2);font-weight:700}
 .cost-total span:last-child{font-family:var(--m);font-size:20px;color:var(--cyan)}
 .cost-note{font-size:10px;color:var(--dim);margin-top:9px;line-height:1.5}
-
 .get-quote-btn{width:100%;padding:12px;background:var(--cyan);color:#080C14;
   font-weight:700;font-size:13px;border:none;border-radius:8px;cursor:pointer;
   font-family:var(--f);margin-top:13px;transition:all .2s}
 .get-quote-btn:hover{filter:brightness(1.1);box-shadow:0 0 18px rgba(0,229,255,.3);transform:translateY(-1px)}
 
-/* Print specs display */
 .spec-row{display:flex;justify-content:space-between;padding:4px 0;
   font-size:11px;border-bottom:1px solid rgba(255,255,255,.04);color:var(--muted)}
 .spec-row:last-child{border-bottom:none}
@@ -175,13 +155,11 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:15px;heigh
 .spec-card{background:var(--card);border-radius:var(--rad);border:1px solid var(--border);
   padding:11px 13px;margin-bottom:12px}
 
-/* ══ VIEWPORT ════════════════════════════════════════ */
 .vp{flex:1;position:relative;overflow:hidden;
   background:radial-gradient(circle at 30% 20%,rgba(0,229,255,.04),transparent 40%),
   linear-gradient(180deg,#08101A,#0A1018)}
 #c3d{position:absolute;inset:0;width:100%;height:100%;display:block}
 
-/* Viewport toolbar */
 .vp-tools{position:absolute;top:12px;left:50%;transform:translateX(-50%);
   display:flex;align-items:center;gap:4px;z-index:10;
   background:rgba(8,12,20,.88);border:1px solid var(--border);
@@ -193,7 +171,6 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:15px;heigh
 .vtool.on{background:var(--cyan15);color:var(--cyan);border:1px solid rgba(0,229,255,.2)}
 .vtool-div{width:1px;height:18px;background:var(--border2);margin:0 2px}
 
-/* Drop overlay */
 .drop-over{position:absolute;inset:0;display:flex;flex-direction:column;
   align-items:center;justify-content:center;gap:12px;z-index:10;cursor:pointer;
   transition:all .2s}
@@ -209,7 +186,6 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:15px;heigh
   transition:all .2s;font-family:var(--f)}
 .drop-browse:hover{background:var(--cyan30);box-shadow:0 0 14px rgba(0,229,255,.2)}
 
-/* Model info overlay (top left) */
 .model-hud{position:absolute;top:12px;left:12px;z-index:10;display:none;flex-direction:column;gap:7px}
 .hud-pill{background:rgba(8,12,20,.85);border:1px solid var(--border);
   border-radius:8px;padding:8px 12px;backdrop-filter:blur(10px)}
@@ -217,7 +193,6 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:15px;heigh
   color:var(--dim);margin-bottom:2px}
 .hud-val{font-size:12px;font-weight:600;font-family:var(--m);color:var(--cyan)}
 
-/* Progress overlay */
 .slice-overlay{position:absolute;inset:0;background:rgba(8,12,20,.92);
   display:none;flex-direction:column;align-items:center;justify-content:center;
   gap:14px;z-index:15}
@@ -228,7 +203,6 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:15px;heigh
 .prog-bar{height:100%;background:linear-gradient(90deg,var(--cyan),#89d2ff);
   transition:width .15s;border-radius:3px}
 
-/* ══ RIGHT LAYER PANEL ───────────────────────────── */
 .rp{width:var(--rp);min-width:var(--rp);background:var(--bg2);
   border-left:1px solid var(--border);display:flex;flex-direction:column;
   padding:0;overflow:hidden}
@@ -237,13 +211,11 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:15px;heigh
   color:var(--dim);margin-bottom:2px}
 .rp-sub{font-size:11px;color:var(--muted)}
 
-/* Vertical slider */
 .layer-outer{flex:1;display:flex;flex-direction:column;padding:12px 14px;gap:12px;min-height:0}
 .layer-slider-vert{flex:1;position:relative;min-height:0;
   display:flex;align-items:stretch;justify-content:center}
 .vert-track{position:relative;width:42px;margin:0 auto;cursor:pointer}
-.vert-bg{position:absolute;inset:0;background:var(--card2);
-  border-radius:6px;border:1px solid var(--border2)}
+.vert-bg{position:absolute;inset:0;background:var(--card2);border-radius:6px;border:1px solid var(--border2)}
 .vert-fill{position:absolute;bottom:0;left:0;right:0;
   background:linear-gradient(to top,rgba(0,229,255,.18),rgba(0,229,255,.04));
   border-radius:0 0 5px 5px;pointer-events:none;transition:height .04s}
@@ -259,8 +231,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:15px;heigh
   white-space:nowrap;pointer-events:none;box-shadow:var(--shadow)}
 
 .layer-info{flex-shrink:0}
-.layer-num{font-family:var(--m);font-size:22px;font-weight:700;color:var(--cyan);
-  text-align:center;line-height:1}
+.layer-num{font-family:var(--m);font-size:22px;font-weight:700;color:var(--cyan);text-align:center;line-height:1}
 .layer-of{font-size:10px;color:var(--dim);text-align:center;margin-top:3px;font-family:var(--m)}
 .layer-z{font-size:11px;color:var(--muted);text-align:center;margin-top:6px;font-family:var(--m)}
 
@@ -269,7 +240,6 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:15px;heigh
   cursor:pointer;transition:all .15s;font-family:var(--f)}
 .play-btn:hover,.play-btn.on{background:var(--cyan15);border-color:rgba(0,229,255,.3);color:var(--cyan)}
 
-/* Type legend */
 .type-legend{flex-shrink:0;padding:0 0 4px}
 .legend-title{font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;
   color:var(--dim);margin-bottom:8px;text-align:center}
@@ -281,7 +251,6 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:15px;heigh
   flex-shrink:0;margin-left:auto;cursor:pointer;transition:all .15s}
 .legend-toggle.on{background:rgba(255,255,255,.15);border-color:rgba(255,255,255,.3)}
 
-/* ══ BOTTOM BAR ════════════════════════════════════ */
 .botbar{height:48px;background:rgba(8,12,20,.95);border-top:1px solid var(--border);
   display:flex;align-items:center;gap:0;padding:0 14px;z-index:5;flex-shrink:0}
 .stat-item{display:flex;flex-direction:column;align-items:center;justify-content:center;
@@ -299,17 +268,12 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:15px;heigh
 .botbar-prog{width:160px;height:4px;background:var(--card2);border-radius:2px;overflow:hidden}
 .botbar-prog-bar{height:100%;background:var(--cyan);transition:width .15s}
 
-/* ══ SCROLLBAR ════════════════════════════════════ */
 ::-webkit-scrollbar{width:5px;height:5px}
 ::-webkit-scrollbar-track{background:transparent}
 ::-webkit-scrollbar-thumb{background:var(--card2);border-radius:3px}
 
-/* ══ RESPONSIVE ════════════════════════════════════ */
 @media(max-width:1100px){:root{--sb:270px;--rp:170px}}
-@media(max-width:800px){
-  .rp{display:none}
-  :root{--sb:260px}
-}
+@media(max-width:800px){.rp{display:none}:root{--sb:260px}}
 @media(max-width:620px){
   .app-body{flex-direction:column}
   .lsb{width:100%;min-width:unset;height:40vh;overflow-y:auto}
@@ -318,7 +282,6 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:15px;heigh
 </style>
 </head>
 <body>
-<!-- TOPBAR -->
 <header class="topbar">
   <div class="brand">
     <div class="brand-icon">LW</div>
@@ -331,17 +294,13 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:15px;heigh
     <button class="vtab" data-mode="layer">Layer View</button>
     <button class="vtab" data-mode="xray">X-Ray</button>
   </div>
-  <button class="slice-btn" id="sliceBtn" disabled>⚡ Slice in Browser</button>
+  <button class="slice-btn" id="sliceBtn" disabled>⚡ Slice</button>
   <input type="file" id="fileInput" accept=".stl,.obj,.3mf,.step,.stp" style="display:none">
 </header>
 
-<!-- BODY -->
 <div class="app-body">
-
-  <!-- LEFT SIDEBAR -->
   <div class="lsb" id="lsb">
 
-    <!-- Filament -->
     <div class="acc-header" onclick="tog(this)">
       <div class="acc-title"><span class="acc-title-icon">🧵</span> Filament</div>
       <span class="acc-caret">▾</span>
@@ -357,7 +316,6 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:15px;heigh
       </div>
     </div>
 
-    <!-- Quality -->
     <div class="acc-header" onclick="tog(this)">
       <div class="acc-title"><span class="acc-title-icon">🔍</span> Quality</div>
       <span class="acc-caret">▾</span>
@@ -369,7 +327,6 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:15px;heigh
       </div>
     </div>
 
-    <!-- Strength -->
     <div class="acc-header" onclick="tog(this)">
       <div class="acc-title"><span class="acc-title-icon">💪</span> Strength</div>
       <span class="acc-caret">▾</span>
@@ -401,7 +358,6 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:15px;heigh
       </div>
     </div>
 
-    <!-- Infill -->
     <div class="acc-header" onclick="tog(this)">
       <div class="acc-title"><span class="acc-title-icon">🔷</span> Infill</div>
       <span class="acc-caret">▾</span>
@@ -418,7 +374,6 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:15px;heigh
       </div>
     </div>
 
-    <!-- Support -->
     <div class="acc-header" onclick="tog(this)">
       <div class="acc-title"><span class="acc-title-icon">🏗️</span> Support</div>
       <span class="acc-caret">▾</span>
@@ -441,7 +396,6 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:15px;heigh
       </div>
     </div>
 
-    <!-- Estimate -->
     <div class="acc-header" onclick="tog(this)">
       <div class="acc-title"><span class="acc-title-icon">💰</span> Cost Estimate</div>
       <span class="acc-caret">▾</span>
@@ -477,22 +431,20 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:15px;heigh
       <button class="get-quote-btn" onclick="window.open('/pages/contact','_blank')">Request Formal Quote →</button>
     </div>
 
-  </div><!-- /lsb -->
+  </div>
 
-  <!-- VIEWPORT -->
   <div class="vp" id="vp">
     <canvas id="c3d"></canvas>
 
-    <!-- Top toolbar -->
     <div class="vp-tools" id="vpTools" style="display:none">
       <button class="vtool on" id="btnOrbit" onclick="setTool('orbit')">⟳ Orbit</button>
       <button class="vtool" id="btnMove" onclick="setTool('move')">✥ Move</button>
       <button class="vtool" id="btnRotate" onclick="setTool('rotate')">↻ Rotate</button>
       <div class="vtool-div"></div>
-      <button class="vtool" onclick="autoCenter()" title="Center model on build plate XZ">⊕ Center</button>
-      <button class="vtool" onclick="autoOnBed()" title="Drop model flush to bed (Y=0)">⬇ On Bed</button>
-      <button class="vtool" id="btnAutoDetect" onclick="autoDetect()" title="Scale & position model to fit within 256×256×256 build volume">⚠ Auto-Fit</button>
-      <button class="vtool" onclick="autoRotate()" title="Test all orientations and choose the one with best bed stability and minimal support">⟳ Auto-Rotate</button>
+      <button class="vtool" onclick="autoCenter()" title="Center model on build plate">⊕ Center</button>
+      <button class="vtool" onclick="autoOnBed()" title="Drop model to bed">⬇ On Bed</button>
+      <button class="vtool" id="btnAutoDetect" onclick="autoDetect()" title="Check build volume">⚠ Check</button>
+      <button class="vtool" onclick="autoRotate()" title="Find optimal orientation">⟳ Auto-Rotate</button>
       <div class="vtool-div"></div>
       <button class="vtool" onclick="fitView()">⊡ Fit View</button>
       <button class="vtool" id="btnWire" onclick="toggleWire()">⬡ Wire</button>
@@ -500,7 +452,6 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:15px;heigh
       <button class="vtool" onclick="document.getElementById('newFileInput').click()">📁 New File</button>
     </div>
 
-    <!-- Model HUD -->
     <div class="model-hud" id="modelHud">
       <div class="hud-pill">
         <div class="hud-label">File</div>
@@ -512,7 +463,6 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:15px;heigh
       </div>
     </div>
 
-    <!-- Drop overlay -->
     <div class="drop-over" id="dropOver">
       <div class="drop-icon">📦</div>
       <div class="drop-title">Drop your 3D file here</div>
@@ -520,42 +470,34 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:15px;heigh
       <button class="drop-browse" onclick="document.getElementById('fileInput').click()">Choose File</button>
     </div>
 
-    <!-- Build volume warning banner -->
     <div id="buildVolumeWarn" style="display:none;position:absolute;top:60px;left:50%;transform:translateX(-50%);
       background:rgba(251,191,36,0.12);border:1px solid rgba(251,191,36,0.5);border-radius:9px;
       padding:10px 18px;z-index:12;align-items:center;gap:10px;backdrop-filter:blur(10px);
       font-size:12px;font-weight:600;color:#FBBF24;white-space:nowrap;pointer-events:none">
       <span style="font-size:16px">⚠</span>
-      <span id="buildVolumeWarnText">Model exceeds 256×256×256 mm build volume — slicing disabled</span>
+      <span id="buildVolumeWarnText">Model exceeds 256×256×256 mm build volume</span>
     </div>
 
-    <!-- Slice progress overlay -->
     <div class="slice-overlay" id="sliceOver">
       <div style="font-size:28px">⚙️</div>
-      <div class="slice-title" id="sliceTitle">Slicing in browser…</div>
-      <div class="slice-sub" id="sliceSub">Running Cura WASM engine</div>
+      <div class="slice-title" id="sliceTitle">Slicing model…</div>
+      <div class="slice-sub" id="sliceSub">Analysing geometry</div>
       <div class="prog-wrap"><div class="prog-bar" id="progBar" style="width:0%"></div></div>
       <div style="font-size:11px;color:var(--dim);margin-top:4px" id="progPct">0%</div>
     </div>
+  </div>
 
-  </div><!-- /vp -->
-
-  <!-- RIGHT LAYER PANEL -->
   <div class="rp">
     <div class="rp-header">
       <div class="rp-title">Layer View</div>
       <div class="rp-sub" id="rpSub">Load a model</div>
     </div>
-
     <div class="layer-outer">
-      <!-- Layer info -->
       <div class="layer-info">
         <div class="layer-num" id="layerNum">—</div>
         <div class="layer-of" id="layerOf">/ —</div>
         <div class="layer-z" id="layerZ">—</div>
       </div>
-
-      <!-- Vertical slider -->
       <div class="layer-slider-vert">
         <div class="vert-track" id="vertTrack" style="height:100%">
           <div class="vert-bg"></div>
@@ -565,22 +507,15 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:15px;heigh
           <div class="vert-label" id="vertLabel">100</div>
         </div>
       </div>
-
-      <!-- Play button -->
       <button class="play-btn" id="playBtn" onclick="togglePlay()">▶ Play Animation</button>
-
-      <!-- Type legend -->
       <div class="type-legend">
         <div class="legend-title">Toolpath Types</div>
         <div id="legendRows"></div>
       </div>
-
     </div>
-  </div><!-- /rp -->
+  </div>
+</div>
 
-</div><!-- /app-body -->
-
-<!-- BOTTOM BAR -->
 <div class="botbar">
   <div class="stat-item"><div class="stat-k">Dimensions</div><div class="stat-v" id="stDims">—</div></div>
   <div class="stat-item"><div class="stat-k">Weight</div><div class="stat-v" id="stWeight">—</div></div>
@@ -596,55 +531,55 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:15px;heigh
 
 <script type="module">
 import * as THREE from 'three';
-import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
+import { OrbitControls }    from 'three/examples/jsm/controls/OrbitControls.js';
 import { TransformControls } from 'three/examples/jsm/controls/TransformControls.js';
-import { STLLoader } from 'three/examples/jsm/loaders/STLLoader.js';
-import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader.js';
+import { STLLoader }   from 'three/examples/jsm/loaders/STLLoader.js';
+import { OBJLoader }   from 'three/examples/jsm/loaders/OBJLoader.js';
 import { ThreeMFLoader } from 'three/examples/jsm/loaders/3MFLoader.js';
 import * as BGU from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 
-// ════════════════════════════════════════════════
+// ══════════════════════════════════════════════
 // MATERIAL LIBRARY
-// ════════════════════════════════════════════════
+// ══════════════════════════════════════════════
 const MATS = [
-  {n:'PLA Basic',fam:'PLA',d:1.24,p:19,nz:'190-220°C',bd:'35-45°C',cl:['#FFFFFF','#000000','#808080','#FF0000','#0000FF','#00CC44','#FFFF00','#FF8800','#9900CC','#FF69B4']},
-  {n:'PLA Matte',fam:'PLA',d:1.24,p:17,nz:'190-220°C',bd:'35-45°C',cl:['#F5F5F5','#111111','#6F6F6F','#556B2F','#1E3A8A']},
-  {n:'PLA Silk',fam:'PLA',d:1.24,p:17,nz:'190-220°C',bd:'35-45°C',cl:['#D4AF37','#C0C0C0','#B87333','#B00000','#1E90FF']},
-  {n:'PLA Aero/LW',fam:'PLA',d:0.70,p:20,nz:'180-210°C',bd:'35-45°C',cl:['#EDE6D5','#000000']},
-  {n:'PLA Glow',fam:'PLA',d:1.24,p:19,nz:'190-220°C',bd:'35-45°C',cl:['#B6FF00','#00BFFF']},
-  {n:'PLA Sparkle',fam:'PLA',d:1.24,p:19,nz:'190-220°C',bd:'35-45°C',cl:['#2B2B2B','#8B0000','#1F3C88']},
-  {n:'PLA Marble',fam:'PLA',d:1.24,p:19,nz:'190-220°C',bd:'35-45°C',cl:['#F4F4F4','#9A9A9A']},
-  {n:'PLA Wood',fam:'PLA',d:1.15,p:20,nz:'190-220°C',bd:'35-45°C',cl:['#C19A6B','#8B5A2B']},
-  {n:'PLA Metal',fam:'PLA',d:3.00,p:21,nz:'190-220°C',bd:'35-45°C',cl:['#7F8C8D','#B87333','#CD7F32']},
-  {n:'PLA-CF',fam:'PLA',d:1.30,p:22,nz:'210-240°C',bd:'45-60°C',cl:['#111111']},
-  {n:'PLA-GF',fam:'PLA',d:1.28,p:21,nz:'210-240°C',bd:'45-60°C',cl:['#6F6F6F']},
-  {n:'PETG Basic',fam:'PETG',d:1.27,p:17,nz:'230-250°C',bd:'70-80°C',cl:['#000000','#808080','#1E90FF','#FF0000']},
-  {n:'PETG Clear',fam:'PETG',d:1.27,p:18,nz:'230-250°C',bd:'70-80°C',cl:['#E8F4FC']},
-  {n:'PETG-CF',fam:'PETG',d:1.35,p:22,nz:'240-270°C',bd:'80-100°C',cl:['#333333']},
-  {n:'PETG-GF',fam:'PETG',d:1.32,p:21,nz:'240-270°C',bd:'80-100°C',cl:['#6F6F6F']},
-  {n:'ABS',fam:'ABS/ASA',d:1.04,p:18,nz:'240-270°C',bd:'90-110°C',cl:['#000000','#F5F5F5','#FF0000','#0000FF','#808080']},
-  {n:'ASA',fam:'ABS/ASA',d:1.07,p:20,nz:'240-270°C',bd:'90-110°C',cl:['#000000','#F5F5F5','#808080','#1E3A8A']},
-  {n:'ASA-CF',fam:'ABS/ASA',d:1.20,p:24,nz:'250-280°C',bd:'90-110°C',cl:['#111111']},
-  {n:'PC Standard',fam:'PC',d:1.20,p:22,nz:'260-300°C',bd:'90-110°C',cl:['#FFFFFF','#000000']},
-  {n:'PC-CF',fam:'PC',d:1.28,p:26,nz:'270-300°C',bd:'100-110°C',cl:['#111111']},
-  {n:'PA6 Nylon',fam:'Nylon',d:1.14,p:20,nz:'250-280°C',bd:'80-90°C',cl:['#FFFFFF','#000000']},
-  {n:'PA6-CF/GF',fam:'Nylon',d:1.25,p:24,nz:'260-290°C',bd:'80-90°C',cl:['#111111','#6F6F6F']},
-  {n:'PAHT-CF',fam:'Nylon',d:1.20,p:26,nz:'270-300°C',bd:'100-120°C',cl:['#111111']},
-  {n:'PPA-CF',fam:'Nylon',d:1.22,p:27,nz:'280-320°C',bd:'120-130°C',cl:['#111111']},
-  {n:'TPU 85A',fam:'TPU',d:1.21,p:20,nz:'200-230°C',bd:'30-45°C',cl:['#000000','#F5F5F5']},
-  {n:'TPU 95A',fam:'TPU',d:1.21,p:18,nz:'200-230°C',bd:'30-45°C',cl:['#000000','#FF0000','#0000FF']},
-  {n:'TPU 98A',fam:'TPU',d:1.21,p:19,nz:'200-230°C',bd:'30-45°C',cl:['#000000']},
-  {n:'PET-GF',fam:'Specialty',d:1.38,p:17,nz:'230-250°C',bd:'70-85°C',cl:['#6F6F6F']},
-  {n:'PP',fam:'Specialty',d:0.91,p:20,nz:'220-250°C',bd:'30-40°C',cl:['#F5F5DC']},
+  {n:'PLA Basic',    fam:'PLA',      d:1.24, p:19, nz:'190-220°C', bd:'35-45°C',  cl:['#FFFFFF','#000000','#808080','#FF0000','#0000FF','#00CC44','#FFFF00','#FF8800','#9900CC','#FF69B4']},
+  {n:'PLA Matte',    fam:'PLA',      d:1.24, p:17, nz:'190-220°C', bd:'35-45°C',  cl:['#F5F5F5','#111111','#6F6F6F','#556B2F','#1E3A8A']},
+  {n:'PLA Silk',     fam:'PLA',      d:1.24, p:17, nz:'190-220°C', bd:'35-45°C',  cl:['#D4AF37','#C0C0C0','#B87333','#B00000','#1E90FF']},
+  {n:'PLA Aero/LW',  fam:'PLA',      d:0.70, p:20, nz:'180-210°C', bd:'35-45°C',  cl:['#EDE6D5','#000000']},
+  {n:'PLA Glow',     fam:'PLA',      d:1.24, p:19, nz:'190-220°C', bd:'35-45°C',  cl:['#B6FF00','#00BFFF']},
+  {n:'PLA Sparkle',  fam:'PLA',      d:1.24, p:19, nz:'190-220°C', bd:'35-45°C',  cl:['#2B2B2B','#8B0000','#1F3C88']},
+  {n:'PLA Marble',   fam:'PLA',      d:1.24, p:19, nz:'190-220°C', bd:'35-45°C',  cl:['#F4F4F4','#9A9A9A']},
+  {n:'PLA Wood',     fam:'PLA',      d:1.15, p:20, nz:'190-220°C', bd:'35-45°C',  cl:['#C19A6B','#8B5A2B']},
+  {n:'PLA Metal',    fam:'PLA',      d:3.00, p:21, nz:'190-220°C', bd:'35-45°C',  cl:['#7F8C8D','#B87333','#CD7F32']},
+  {n:'PLA-CF',       fam:'PLA',      d:1.30, p:22, nz:'210-240°C', bd:'45-60°C',  cl:['#111111']},
+  {n:'PLA-GF',       fam:'PLA',      d:1.28, p:21, nz:'210-240°C', bd:'45-60°C',  cl:['#6F6F6F']},
+  {n:'PETG Basic',   fam:'PETG',     d:1.27, p:17, nz:'230-250°C', bd:'70-80°C',  cl:['#000000','#808080','#1E90FF','#FF0000']},
+  {n:'PETG Clear',   fam:'PETG',     d:1.27, p:18, nz:'230-250°C', bd:'70-80°C',  cl:['#E8F4FC']},
+  {n:'PETG-CF',      fam:'PETG',     d:1.35, p:22, nz:'240-270°C', bd:'80-100°C', cl:['#333333']},
+  {n:'PETG-GF',      fam:'PETG',     d:1.32, p:21, nz:'240-270°C', bd:'80-100°C', cl:['#6F6F6F']},
+  {n:'ABS',          fam:'ABS/ASA',  d:1.04, p:18, nz:'240-270°C', bd:'90-110°C', cl:['#000000','#F5F5F5','#FF0000','#0000FF','#808080']},
+  {n:'ASA',          fam:'ABS/ASA',  d:1.07, p:20, nz:'240-270°C', bd:'90-110°C', cl:['#000000','#F5F5F5','#808080','#1E3A8A']},
+  {n:'ASA-CF',       fam:'ABS/ASA',  d:1.20, p:24, nz:'250-280°C', bd:'90-110°C', cl:['#111111']},
+  {n:'PC Standard',  fam:'PC',       d:1.20, p:22, nz:'260-300°C', bd:'90-110°C', cl:['#FFFFFF','#000000']},
+  {n:'PC-CF',        fam:'PC',       d:1.28, p:26, nz:'270-300°C', bd:'100-110°C',cl:['#111111']},
+  {n:'PA6 Nylon',    fam:'Nylon',    d:1.14, p:20, nz:'250-280°C', bd:'80-90°C',  cl:['#FFFFFF','#000000']},
+  {n:'PA6-CF/GF',    fam:'Nylon',    d:1.25, p:24, nz:'260-290°C', bd:'80-90°C',  cl:['#111111','#6F6F6F']},
+  {n:'PAHT-CF',      fam:'Nylon',    d:1.20, p:26, nz:'270-300°C', bd:'100-120°C',cl:['#111111']},
+  {n:'PPA-CF',       fam:'Nylon',    d:1.22, p:27, nz:'280-320°C', bd:'120-130°C',cl:['#111111']},
+  {n:'TPU 85A',      fam:'TPU',      d:1.21, p:20, nz:'200-230°C', bd:'30-45°C',  cl:['#000000','#F5F5F5']},
+  {n:'TPU 95A',      fam:'TPU',      d:1.21, p:18, nz:'200-230°C', bd:'30-45°C',  cl:['#000000','#FF0000','#0000FF']},
+  {n:'TPU 98A',      fam:'TPU',      d:1.21, p:19, nz:'200-230°C', bd:'30-45°C',  cl:['#000000']},
+  {n:'PET-GF',       fam:'Specialty',d:1.38, p:17, nz:'230-250°C', bd:'70-85°C',  cl:['#6F6F6F']},
+  {n:'PP',           fam:'Specialty',d:0.91, p:20, nz:'220-250°C', bd:'30-40°C',  cl:['#F5F5DC']},
 ];
 
 const INFILL_PATTERNS = [
-  {id:'grid',     label:'Grid',      desc:'General purpose'},
-  {id:'gyroid',   label:'Gyroid',    desc:'Best all-around'},
-  {id:'honeycomb',label:'Honeycomb', desc:'Compression strength'},
-  {id:'lines',    label:'Lines',     desc:'Fast, alternating'},
-  {id:'triangles',label:'Triangles', desc:'Rigid panels'},
-  {id:'lightning',label:'Lightning', desc:'Minimal / fastest'},
+  {id:'grid',      label:'Grid',      desc:'General purpose'},
+  {id:'gyroid',    label:'Gyroid',    desc:'Best all-around'},
+  {id:'honeycomb', label:'Honeycomb', desc:'Compression strength'},
+  {id:'lines',     label:'Lines',     desc:'Fast, alternating'},
+  {id:'triangles', label:'Triangles', desc:'Rigid panels'},
+  {id:'lightning', label:'Lightning', desc:'Minimal / fastest'},
 ];
 
 const LH_PRESETS = [
@@ -652,43 +587,42 @@ const LH_PRESETS = [
   {v:0.08, label:'0.08mm', sub:'Hi-Q'},
   {v:0.12, label:'0.12mm', sub:'Fine'},
   {v:0.16, label:'0.16mm', sub:'Detail'},
-  {v:0.20, label:'0.20mm', sub:'Standard',on:true},
+  {v:0.20, label:'0.20mm', sub:'Standard', on:true},
   {v:0.24, label:'0.24mm', sub:'Quality'},
   {v:0.28, label:'0.28mm', sub:'Draft'},
 ];
 
 const TOOLPATH_TYPES = [
-  {id:'WALL-OUTER',  label:'Outer Wall',   color:'#FF8F00'},
-  {id:'WALL-INNER',  label:'Inner Wall',   color:'#FFB300'},
-  {id:'FILL',        label:'Infill',       color:'#3B82F6'},
-  {id:'SKIN',        label:'Top/Bottom',   color:'#22D17A'},
-  {id:'SUPPORT',     label:'Support',      color:'#EF4444'},
-  {id:'BRIDGE',      label:'Bridge',       color:'#00E5FF'},
-  {id:'SKIRT',       label:'Skirt/Brim',   color:'#6B7280'},
+  {id:'WALL-OUTER', label:'Outer Wall',  color:'#FF8F00'},
+  {id:'WALL-INNER', label:'Inner Wall',  color:'#FFB300'},
+  {id:'FILL',       label:'Infill',      color:'#3B82F6'},
+  {id:'SKIN',       label:'Top/Bottom',  color:'#22D17A'},
+  {id:'SUPPORT',    label:'Support',     color:'#EF4444'},
+  {id:'BRIDGE',     label:'Bridge',      color:'#00E5FF'},
+  {id:'SKIRT',      label:'Skirt/Brim',  color:'#6B7280'},
 ];
 
-// ════════════════════════════════════════════════
+// ══════════════════════════════════════════════
 // STATE
-// ════════════════════════════════════════════════
+// ══════════════════════════════════════════════
 const S = {
   matIdx:0, colorHex:'#FFFFFF', lh:0.20, walls:2, top:4, bot:4,
   infill:20, pattern:'gyroid', support:false, qty:1,
   viewMode:'solid', tool:'orbit', wireframe:false,
   currentLayer:100, totalLayers:100,
   modelLoaded:false, hasGcode:false,
-  typeVisible:{},
+  typeVisible:{}, busy:false,
   playing:false, playTimer:null,
 };
-
 TOOLPATH_TYPES.forEach(t => S.typeVisible[t.id] = true);
 
-// ════════════════════════════════════════════════
-// THREE.JS
-// ════════════════════════════════════════════════
+// ══════════════════════════════════════════════
+// THREE.JS SETUP
+// ══════════════════════════════════════════════
 const vpEl = document.getElementById('vp');
 const canvasEl = document.getElementById('c3d');
-const renderer = new THREE.WebGLRenderer({canvas:canvasEl, antialias:true, alpha:false, preserveDrawingBuffer:true});
-renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+const renderer = new THREE.WebGLRenderer({canvas:canvasEl, antialias:true, alpha:false});
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
 renderer.setClearColor(0x080C14);
 renderer.shadowMap.enabled = true;
 renderer.localClippingEnabled = true;
@@ -700,66 +634,55 @@ camera.position.set(200, 170, 200);
 
 const orbit = new OrbitControls(camera, renderer.domElement);
 orbit.enableDamping = true; orbit.dampingFactor = 0.08;
-orbit.target.set(0,30,0); orbit.minDistance = 5; orbit.maxDistance = 1800;
+orbit.target.set(0, 30, 0); orbit.minDistance = 5; orbit.maxDistance = 1800;
 
 const xform = new TransformControls(camera, renderer.domElement);
 xform.setMode('translate'); xform.setSize(0.9);
 xform.addEventListener('dragging-changed', e => { orbit.enabled = !e.value; });
 scene.add(xform);
 
-// Lights
+// Lights — FIX: don't chain .position.set() with scene.add()
 scene.add(new THREE.AmbientLight(0xffffff, 1.1));
-const dl = new THREE.DirectionalLight(0xffffff, 1.5); dl.position.set(160, 260, 100); dl.castShadow = true; scene.add(dl);
-scene.add(new THREE.DirectionalLight(0x7eb6ff, 0.7).position.set(-200, 160, -140));
-const hemi = new THREE.HemisphereLight(0x8cb4ff, 0x1a2a4a, 0.5); scene.add(hemi);
+const dl = new THREE.DirectionalLight(0xffffff, 1.5);
+dl.position.set(160, 260, 100); dl.castShadow = true; scene.add(dl);
+const dl2 = new THREE.DirectionalLight(0x7eb6ff, 0.7);
+dl2.position.set(-200, 160, -140); scene.add(dl2);
+scene.add(new THREE.HemisphereLight(0x8cb4ff, 0x1a2a4a, 0.5));
 
 // Build plate
-const PLATE = 256; // mm — Bambu P2S build volume: 256×256×256
-
-function buildPlate() {
-  // Floor mesh
+const PLATE = 256;
+(function buildPlate() {
   const pg = new THREE.PlaneGeometry(PLATE, PLATE);
   const pm = new THREE.MeshStandardMaterial({color:0x0C1424, roughness:0.92, metalness:0.05, transparent:true, opacity:0.9});
-  const plate = new THREE.Mesh(pg, pm); plate.rotation.x = -Math.PI/2; plate.receiveShadow = true; scene.add(plate);
+  const plate = new THREE.Mesh(pg, pm);
+  plate.rotation.x = -Math.PI/2; plate.receiveShadow = true; scene.add(plate);
 
-  // Grid
   const grid = new THREE.GridHelper(PLATE, 32, 0x1E3A5F, 0x1A2E4A);
   grid.position.y = 0.2; grid.material.transparent = true; grid.material.opacity = 0.7; scene.add(grid);
 
-  // Build volume wireframe box 256x256x256
   const H2 = PLATE/2, HH = PLATE;
   const verts = [
-    // bottom square
-    -H2,0,-H2,  H2,0,-H2,   H2,0,-H2,  H2,0,H2,   H2,0,H2, -H2,0,H2,  -H2,0,H2, -H2,0,-H2,
-    // top square
-    -H2,HH,-H2, H2,HH,-H2,  H2,HH,-H2, H2,HH,H2,  H2,HH,H2,-H2,HH,H2, -H2,HH,H2,-H2,HH,-H2,
-    // verticals
-    -H2,0,-H2,-H2,HH,-H2,  H2,0,-H2,H2,HH,-H2,  H2,0,H2,H2,HH,H2,  -H2,0,H2,-H2,HH,H2
+    -H2,0,-H2, H2,0,-H2,  H2,0,-H2,H2,0,H2,  H2,0,H2,-H2,0,H2,  -H2,0,H2,-H2,0,-H2,
+    -H2,HH,-H2,H2,HH,-H2,  H2,HH,-H2,H2,HH,H2,  H2,HH,H2,-H2,HH,H2, -H2,HH,H2,-H2,HH,-H2,
+    -H2,0,-H2,-H2,HH,-H2,  H2,0,-H2,H2,HH,-H2,  H2,0,H2,H2,HH,H2,  -H2,0,H2,-H2,HH,H2,
   ];
   const boxGeo = new THREE.BufferGeometry();
   boxGeo.setAttribute('position', new THREE.Float32BufferAttribute(verts, 3));
   scene.add(new THREE.LineSegments(boxGeo, new THREE.LineBasicMaterial({color:0x00E5FF, transparent:true, opacity:0.07})));
 
-  // Bright bottom border
   const bpts = [[-H2,.4,-H2],[H2,.4,-H2],[H2,.4,H2],[-H2,.4,H2],[-H2,.4,-H2]].map(([x,y,z])=>new THREE.Vector3(x,y,z));
-  scene.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(bpts), new THREE.LineBasicMaterial({color:0x00E5FF,transparent:true,opacity:0.22})));
+  scene.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(bpts), new THREE.LineBasicMaterial({color:0x00E5FF, transparent:true, opacity:0.22})));
 
-  // Axis helper
-  const ax = new THREE.AxesHelper(40); ax.position.set(-120,0.5,-120); scene.add(ax);
-}
-buildPlate();
+  const ax = new THREE.AxesHelper(40); ax.position.set(-120, 0.5, -120); scene.add(ax);
+})();
 
-// Clip plane
-const clipPlane = new THREE.Plane(new THREE.Vector3(0,-1,0), 0);
+const clipPlane = new THREE.Plane(new THREE.Vector3(0, -1, 0), 0);
 let modelGroup = null, modelMesh = null, primaryGeo = null;
 let toolpathGroup = null;
 let modelBBox = new THREE.Box3();
 const raycaster = new THREE.Raycaster();
 const pointer = new THREE.Vector2();
 
-// ════════════════════════════════════════════════
-// RESIZE
-// ════════════════════════════════════════════════
 function onResize() {
   const w = vpEl.clientWidth, h = vpEl.clientHeight;
   renderer.setSize(w, h); camera.aspect = w/h; camera.updateProjectionMatrix();
@@ -774,16 +697,15 @@ function animate() {
 }
 animate();
 
-// ════════════════════════════════════════════════
+// ══════════════════════════════════════════════
 // LOADERS
-// ════════════════════════════════════════════════
+// ══════════════════════════════════════════════
 const stlL = new STLLoader(), objL = new OBJLoader(), mfL = new ThreeMFLoader();
 
 async function handleFile(file) {
   if (!file) return;
   const ext = file.name.split('.').pop().toLowerCase();
-  setStatus(`Loading ${file.name}…`, 'busy');
-  setProgress(5);
+  setStatus(`Loading ${file.name}…`, 'busy'); setProgress(5);
   try {
     let geo;
     if (ext==='stl') { geo = stlL.parse(await file.arrayBuffer()); geo.computeVertexNormals(); }
@@ -846,30 +768,26 @@ async function loadStep(file) {
   return merged;
 }
 
-// ════════════════════════════════════════════════
+// ══════════════════════════════════════════════
 // MODEL SPAWN
-// ════════════════════════════════════════════════
+// ══════════════════════════════════════════════
 function spawnModel(geo, name) {
   clearModel();
-  // Unit conversion only — never scale down to fit build volume
   geo.computeBoundingBox();
   const sz0 = geo.boundingBox.getSize(new THREE.Vector3());
   const maxD = Math.max(sz0.x, sz0.y, sz0.z);
   let sc = 1;
-  if (maxD < 0.001)  sc = 100;         // likely meters → mm
-  else if (maxD < 1) sc = 150 / maxD;  // sub-mm → reasonable mm
-  else if (maxD < 5) sc = 80  / maxD;  // likely cm → mm
+  if (maxD < 0.001)  sc = 100;
+  else if (maxD < 1) sc = 150 / maxD;
+  else if (maxD < 5) sc = 80  / maxD;
 
-  // Center XZ, sit on bed
   const center = geo.boundingBox.getCenter(new THREE.Vector3());
   geo.translate(-center.x, -geo.boundingBox.min.y, -center.z);
   if (sc !== 1) geo.scale(sc, sc, sc);
   geo.computeBoundingBox();
 
-  // Vertex colors
   applyVertexColor(geo, new THREE.Color(S.colorHex));
-
-  const mat = new THREE.MeshStandardMaterial({vertexColors:true, roughness:0.92, metalness:0.0, envMapIntensity:0.0});
+  const mat = new THREE.MeshStandardMaterial({vertexColors:true, roughness:0.92, metalness:0.0});
   const mesh = new THREE.Mesh(geo, mat);
   mesh.castShadow = true; mesh.receiveShadow = true;
 
@@ -884,7 +802,6 @@ function spawnModel(geo, name) {
   S.currentLayer = S.totalLayers;
   S.modelLoaded = true;
 
-  // UI
   document.getElementById('dropOver').style.display = 'none';
   document.getElementById('vpTools').style.display = 'flex';
   document.getElementById('modelHud').style.display = 'flex';
@@ -901,7 +818,7 @@ function spawnModel(geo, name) {
   updateLayerUI();
   updateCost();
   fitView();
-  updateDimsUI(); // checks size and warns / locks slice if outside volume
+  updateDimsUI();
 
   if (S.tool === 'move' || S.tool === 'rotate') xform.attach(modelGroup);
   if (S.viewMode === 'layer') applyClipMode();
@@ -934,9 +851,9 @@ function applyVertexColor(geo, color) {
   geo.setAttribute('color', new THREE.BufferAttribute(cols, 3));
 }
 
-// ════════════════════════════════════════════════
+// ══════════════════════════════════════════════
 // VIEW MODES
-// ════════════════════════════════════════════════
+// ══════════════════════════════════════════════
 function setViewMode(mode) {
   S.viewMode = mode;
   document.querySelectorAll('#viewTabs .vtab').forEach(b => b.classList.toggle('on', b.dataset.mode === mode));
@@ -945,21 +862,24 @@ function setViewMode(mode) {
     modelMesh.material.clippingPlanes = [];
     modelMesh.material.opacity = 1; modelMesh.material.transparent = false;
     modelMesh.visible = true;
+    if (toolpathGroup) toolpathGroup.visible = false;
     document.getElementById('stLayers').textContent = S.totalLayers;
   } else if (mode === 'layer') {
-    applyClipMode();
+    if (toolpathGroup) { toolpathGroup.visible = true; modelMesh.visible = false; }
+    else applyClipMode();
   } else if (mode === 'xray') {
     modelMesh.material.clippingPlanes = [];
     modelMesh.material.opacity = 0.25; modelMesh.material.transparent = true;
     modelMesh.visible = true;
+    if (toolpathGroup) toolpathGroup.visible = false;
   }
-  // Update right panel
-  document.getElementById('rp-sub') && (document.getElementById('rpSub').textContent = mode === 'layer' ? `${S.currentLayer} / ${S.totalLayers} layers` : 'Switch to Layer View');
+  document.getElementById('rpSub').textContent = mode === 'layer'
+    ? `Layer ${S.currentLayer} / ${S.totalLayers}`
+    : 'Switch to Layer View';
 }
 
 function applyClipMode() {
   if (!modelMesh) return;
-  // Use world-space min.y so clip stays correct even when model is moved up/down
   const modelH = modelBBox.max.y - modelBBox.min.y;
   const h = modelBBox.min.y + (S.currentLayer / S.totalLayers) * modelH;
   clipPlane.constant = h;
@@ -972,9 +892,9 @@ function applyClipMode() {
   updateLayerUI();
 }
 
-// ════════════════════════════════════════════════
+// ══════════════════════════════════════════════
 // LAYER SLIDER
-// ════════════════════════════════════════════════
+// ══════════════════════════════════════════════
 function updateLayerUI() {
   const sl = document.getElementById('layerSlider');
   sl.max = S.totalLayers;
@@ -986,8 +906,7 @@ function updateLayerUI() {
   document.getElementById('vertLabel').textContent = S.currentLayer;
   document.getElementById('layerNum').textContent = S.currentLayer;
   document.getElementById('layerOf').textContent = `/ ${S.totalLayers}`;
-  const z = (S.currentLayer * S.lh).toFixed(2);
-  document.getElementById('layerZ').textContent = `Z = ${z} mm`;
+  document.getElementById('layerZ').textContent = `Z = ${(S.currentLayer * S.lh).toFixed(2)} mm`;
   document.getElementById('stLayers').textContent = S.totalLayers;
   document.getElementById('rpSub').textContent = `Layer ${S.currentLayer} / ${S.totalLayers}`;
   if (S.viewMode === 'layer') applyClipMode();
@@ -1018,7 +937,6 @@ function togglePlay() {
 }
 window.togglePlay = togglePlay;
 
-// Keyboard shortcuts
 document.addEventListener('keydown', e => {
   if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT' || e.target.tagName === 'TEXTAREA') return;
   if (e.key === 'ArrowRight') { S.currentLayer = Math.min(S.totalLayers, S.currentLayer+1); updateLayerUI(); }
@@ -1029,42 +947,23 @@ document.addEventListener('keydown', e => {
   if (e.key === 'f' || e.key === 'F') fitView();
 });
 
-// ════════════════════════════════════════════════
+// ══════════════════════════════════════════════
 // TOOLS
-// ════════════════════════════════════════════════
+// ══════════════════════════════════════════════
 function setTool(t) {
   S.tool = t;
-  ['orbit','move','rotate','paint'].forEach(id => {
-    const b = document.getElementById('btn'+id.charAt(0).toUpperCase()+id.slice(1));
+  ['orbit','move','rotate'].forEach(id => {
+    const b = document.getElementById('btn' + id.charAt(0).toUpperCase() + id.slice(1));
     if (b) b.classList.toggle('on', id===t);
   });
-  xform.detach();
-  orbit.enabled = true;
-  if (t==='move') { xform.setMode('translate'); if(modelGroup) xform.attach(modelGroup); }
-  if (t==='rotate') { xform.setMode('rotate'); if(modelGroup) xform.attach(modelGroup); }
-  if (t==='paint') orbit.enabled = false;
-  document.getElementById('hudMode').textContent = {orbit:'Orbit Camera',move:'Move Model',rotate:'Rotate Model',paint:'Paint Color'}[t] || 'Orbit Camera';
-  canvasEl.style.cursor = t === 'paint' ? 'crosshair' : 'grab';
+  xform.detach(); orbit.enabled = true;
+  if (t==='move')   { xform.setMode('translate'); if(modelGroup) xform.attach(modelGroup); }
+  if (t==='rotate') { xform.setMode('rotate');    if(modelGroup) xform.attach(modelGroup); }
+  const modeLabels = {orbit:'Orbit Camera', move:'Move Model', rotate:'Rotate Model'};
+  document.getElementById('hudMode').textContent = modeLabels[t] || 'Orbit Camera';
+  canvasEl.style.cursor = 'grab';
 }
 window.setTool = setTool;
-
-// Paint
-canvasEl.addEventListener('pointerdown', e => {
-  if (S.tool !== 'paint' || !modelMesh) return;
-  const rect = canvasEl.getBoundingClientRect();
-  pointer.x = ((e.clientX-rect.left)/rect.width)*2-1;
-  pointer.y = -((e.clientY-rect.top)/rect.height)*2+1;
-  raycaster.setFromCamera(pointer, camera);
-  const hits = raycaster.intersectObject(modelMesh, false);
-  if (!hits.length) return;
-  const hit = hits[0];
-  const ca = modelMesh.geometry.getAttribute('color');
-  if (!ca) return;
-  const pc = new THREE.Color(S.colorHex);
-  const bi = (hit.faceIndex ?? (hit.face?.a ?? 0)) * 3; // Each face = 3 vertices (non-indexed)
-  for (let i=0; i<3; i++) ca.setXYZ(bi+i, pc.r, pc.g, pc.b);
-  ca.needsUpdate = true;
-});
 
 function toggleWire() {
   S.wireframe = !S.wireframe;
@@ -1074,22 +973,21 @@ function toggleWire() {
 window.toggleWire = toggleWire;
 
 function fitView() {
-  const target = modelGroup || scene;
-  const box = new THREE.Box3().setFromObject(target.type === 'Scene' ? scene : target);
-  if (box.isEmpty()) { camera.position.set(200,170,200); orbit.target.set(0,30,0); orbit.update(); return; }
+  const target = modelGroup;
+  if (!target) { camera.position.set(200,170,200); orbit.target.set(0,30,0); orbit.update(); return; }
+  const box = new THREE.Box3().setFromObject(target);
+  if (box.isEmpty()) return;
   const c = box.getCenter(new THREE.Vector3());
   const sz = box.getSize(new THREE.Vector3());
   const maxD = Math.max(sz.x, sz.y, sz.z);
   const dist = maxD * 2.2;
-  const dir = new THREE.Vector3(1,0.8,1).normalize();
-  camera.position.copy(c).add(dir.multiplyScalar(dist));
+  camera.position.copy(c).add(new THREE.Vector3(1,0.8,1).normalize().multiplyScalar(dist));
   orbit.target.copy(c);
   camera.near = dist/100; camera.far = dist*10; camera.updateProjectionMatrix();
   orbit.update();
 }
 window.fitView = fitView;
 
-// ── Auto-Center: centres model XZ on plate, keeps current Y ────────
 function autoCenter() {
   if (!modelGroup) return;
   modelGroup.updateMatrixWorld(true);
@@ -1099,11 +997,10 @@ function autoCenter() {
   modelGroup.position.z -= c.z;
   modelBBox = new THREE.Box3().setFromObject(modelGroup);
   refreshAfterTransform();
-  setStatus('Model centred on build plate ✓', 'good');
+  setStatus('Model centred ✓', 'good');
 }
 window.autoCenter = autoCenter;
 
-// ── Auto On Bed: drops model so its lowest point sits at Y=0 ───────
 function autoOnBed() {
   if (!modelGroup) return;
   modelGroup.updateMatrixWorld(true);
@@ -1115,79 +1012,54 @@ function autoOnBed() {
 }
 window.autoOnBed = autoOnBed;
 
-// ── Auto-Detect: checks build volume and warns — never scales ──────
 function autoDetect() {
-  if (!modelGroup || !modelMesh) return;
+  if (!modelGroup) return;
   bakeGroupTransform();
   modelBBox = new THREE.Box3().setFromObject(modelGroup);
   const sz = modelBBox.getSize(new THREE.Vector3());
   if (sz.x > 256 || sz.y > 256 || sz.z > 256) {
-    setStatus(`⚠ Model exceeds 256×256×256 build volume (${sz.x.toFixed(0)}×${sz.y.toFixed(0)}×${sz.z.toFixed(0)} mm) — cannot slice`, 'warn');
+    setStatus(`⚠ Model exceeds build volume (${sz.x.toFixed(0)}×${sz.y.toFixed(0)}×${sz.z.toFixed(0)} mm)`, 'warn');
   } else {
     centerAndBed();
-    setStatus(`✓ Model fits in build volume  (${sz.x.toFixed(0)}×${sz.y.toFixed(0)}×${sz.z.toFixed(0)} mm)`, 'good');
+    setStatus(`✓ Model fits (${sz.x.toFixed(0)}×${sz.y.toFixed(0)}×${sz.z.toFixed(0)} mm)`, 'good');
   }
-  refreshAfterTransform();
-  fitView();
+  refreshAfterTransform(); fitView();
 }
 window.autoDetect = autoDetect;
 
-// ── Auto-Rotate: tests orientations, picks best for bed stability ───
 function autoRotate() {
   if (!modelGroup || !modelMesh) return;
   setStatus('Analysing optimal orientation…', 'busy');
-
-  // Bake any current transforms first
   bakeGroupTransform();
 
-  // 6 cardinal orientations: [rotX, rotZ] pairs to try
   const candidates = [
-    {rx:0,    rz:0,    label:'Original'},
-    {rx:Math.PI/2,  rz:0,    label:'Front down'},
-    {rx:-Math.PI/2, rz:0,    label:'Back down'},
-    {rx:0,    rz:Math.PI/2,  label:'Right side down'},
-    {rx:0,    rz:-Math.PI/2, label:'Left side down'},
-    {rx:Math.PI,rz:0,    label:'Flipped upside down'},
-    // 45° diagonals to catch wedge-shaped parts
-    {rx:Math.PI/4, rz:0,   label:'45° front tilt'},
-    {rx:0,  rz:Math.PI/4,  label:'45° side tilt'},
+    {rx:0,              rz:0,             label:'Original'},
+    {rx:Math.PI/2,      rz:0,             label:'Front down'},
+    {rx:-Math.PI/2,     rz:0,             label:'Back down'},
+    {rx:0,              rz:Math.PI/2,     label:'Right side down'},
+    {rx:0,              rz:-Math.PI/2,    label:'Left side down'},
+    {rx:Math.PI,        rz:0,             label:'Upside down'},
+    {rx:Math.PI/4,      rz:0,             label:'45° front tilt'},
+    {rx:0,              rz:Math.PI/4,     label:'45° side tilt'},
   ];
 
-  // Score each orientation: lower = better
-  // Criteria: (1) minimise height (print time), (2) maximise bottom face area (stability)
   function scoreOrientation(rx, rz) {
     const geo = modelMesh.geometry.clone();
-    const m4 = new THREE.Matrix4().makeRotationFromEuler(new THREE.Euler(rx, 0, rz, 'XYZ'));
-    geo.applyMatrix4(m4);
+    geo.applyMatrix4(new THREE.Matrix4().makeRotationFromEuler(new THREE.Euler(rx, 0, rz, 'XYZ')));
     geo.computeBoundingBox();
-
     const bb = geo.boundingBox;
     const height = bb.max.y - bb.min.y;
-    const footX  = bb.max.x - bb.min.x;
-    const footZ  = bb.max.z - bb.min.z;
-
-    // Penalty = height (want short) / foot area (want large base)
-    // Count bottom-facing triangles to estimate real floor contact
-    let bottomFaceArea = 0;
+    const footX = bb.max.x - bb.min.x, footZ = bb.max.z - bb.min.z;
     const pos = geo.getAttribute('position');
-    const a = new THREE.Vector3(), b = new THREE.Vector3(), c = new THREE.Vector3();
-    for (let i = 0; i < pos.count; i += 3) {
-      a.fromBufferAttribute(pos, i); b.fromBufferAttribute(pos, i+1); c.fromBufferAttribute(pos, i+2);
-      const normal = new THREE.Vector3().crossVectors(b.clone().sub(a), c.clone().sub(a));
-      // downward-facing triangles close to min.y = good contact area
-      if (normal.y < -0.5) {
-        const midY = (a.y + b.y + c.y) / 3;
-        if (midY < bb.min.y + height * 0.08) {
-          bottomFaceArea += normal.length() / 2;
-        }
-      }
+    let bottomArea = 0;
+    const a=new THREE.Vector3(), b=new THREE.Vector3(), c=new THREE.Vector3();
+    for (let i=0; i<pos.count; i+=3) {
+      a.fromBufferAttribute(pos,i); b.fromBufferAttribute(pos,i+1); c.fromBufferAttribute(pos,i+2);
+      const n = new THREE.Vector3().crossVectors(b.clone().sub(a), c.clone().sub(a));
+      if (n.y < -0.5 && (a.y+b.y+c.y)/3 < bb.min.y + height*0.08) bottomArea += n.length()/2;
     }
-
-    const footArea = footX * footZ;
-    // Score: heavily penalise tall prints, reward contact area
-    const score = height * 1.5 - bottomFaceArea * 2 - footArea * 0.01;
     geo.dispose();
-    return score;
+    return height * 1.5 - bottomArea * 2 - footX * footZ * 0.01;
   }
 
   let bestScore = Infinity, bestRx = 0, bestRz = 0, bestLabel = 'Original';
@@ -1195,46 +1067,29 @@ function autoRotate() {
     const s = scoreOrientation(rx, rz);
     if (s < bestScore) { bestScore = s; bestRx = rx; bestRz = rz; bestLabel = label; }
   }
-
-  // Apply best rotation to geometry
   if (bestRx !== 0 || bestRz !== 0) {
-    const m4 = new THREE.Matrix4().makeRotationFromEuler(new THREE.Euler(bestRx, 0, bestRz, 'XYZ'));
-    modelMesh.geometry.applyMatrix4(m4);
+    modelMesh.geometry.applyMatrix4(new THREE.Matrix4().makeRotationFromEuler(new THREE.Euler(bestRx, 0, bestRz, 'XYZ')));
     modelMesh.geometry.computeBoundingBox();
   }
-
   centerAndBed();
   modelBBox = new THREE.Box3().setFromObject(modelGroup);
-  refreshAfterTransform();
-  fitView();
-  setStatus(`Auto-Rotate: "${bestLabel}" chosen as optimal orientation ✓`, 'good');
+  refreshAfterTransform(); fitView();
+  setStatus(`Auto-Rotate: "${bestLabel}" ✓`, 'good');
 }
 window.autoRotate = autoRotate;
 
-// ── Bake group-level scale/rotation into geometry ─────────────────
 function bakeGroupTransform() {
   if (!modelGroup || !modelMesh) return;
   modelGroup.updateMatrixWorld(true);
-
-  // Decompose group transform — if any scale or rotation exists, bake into geo
-  const sc = new THREE.Vector3(), qt = new THREE.Quaternion(), tr = new THREE.Vector3();
+  const sc=new THREE.Vector3(), qt=new THREE.Quaternion(), tr=new THREE.Vector3();
   modelGroup.matrixWorld.decompose(tr, qt, sc);
-
-  const hasScale = Math.abs(sc.x - 1) > 0.001 || Math.abs(sc.y - 1) > 0.001 || Math.abs(sc.z - 1) > 0.001;
-  const hasRot   = Math.abs(qt.x) > 0.001 || Math.abs(qt.y) > 0.001 || Math.abs(qt.z) > 0.001;
-
-  if (hasScale || hasRot) {
-    // Apply only rotation + scale (not translation) into geometry
-    const bakeM = new THREE.Matrix4().compose(new THREE.Vector3(), qt, sc);
-    modelMesh.geometry.applyMatrix4(bakeM);
+  if (Math.abs(sc.x-1)>0.001 || Math.abs(qt.x)>0.001 || Math.abs(qt.y)>0.001 || Math.abs(qt.z)>0.001) {
+    modelMesh.geometry.applyMatrix4(new THREE.Matrix4().compose(new THREE.Vector3(), qt, sc));
     modelMesh.geometry.computeBoundingBox();
-    // Reset group to identity scale/rotation, keep position
-    modelGroup.scale.set(1, 1, 1);
-    modelGroup.quaternion.set(0, 0, 0, 1);
+    modelGroup.scale.set(1,1,1); modelGroup.quaternion.set(0,0,0,1);
   }
 }
 
-// ── Centre XZ and drop on bed in one call ─────────────────────────
 function centerAndBed() {
   if (!modelGroup) return;
   modelGroup.updateMatrixWorld(true);
@@ -1242,91 +1097,41 @@ function centerAndBed() {
   const c = box.getCenter(new THREE.Vector3());
   modelGroup.position.x -= c.x;
   modelGroup.position.z -= c.z;
-  modelGroup.position.y -= box.min.y + modelGroup.position.y; // floor to 0
-  // re-read after position change
+  modelGroup.position.y -= box.min.y + modelGroup.position.y;
   modelGroup.updateMatrixWorld(true);
   modelBBox = new THREE.Box3().setFromObject(modelGroup);
 }
 
-// ── Refresh layer count and bottom-bar dims after any transform ────
 function refreshAfterTransform() {
   modelBBox = new THREE.Box3().setFromObject(modelGroup);
   S.totalLayers = Math.max(1, Math.ceil((modelBBox.max.y - modelBBox.min.y) / S.lh));
   S.currentLayer = S.totalLayers;
-  updateDimsUI();
-  updateLayerUI();
-  updateCost();
+  updateDimsUI(); updateLayerUI(); updateCost();
 }
 
-// Helper — refresh dimension readouts and enforce build-volume check
 function updateDimsUI() {
   if (!modelBBox) return;
   const sz = modelBBox.getSize(new THREE.Vector3());
   const ds = `${sz.x.toFixed(0)}×${sz.y.toFixed(0)}×${sz.z.toFixed(0)} mm`;
   document.getElementById('stDims').textContent = ds;
   const sdEl = document.getElementById('sDims'); if (sdEl) sdEl.textContent = ds;
-
   const outside = sz.x > 256 || sz.y > 256 || sz.z > 256;
   const btn = document.getElementById('btnAutoDetect');
   if (btn) { btn.classList.toggle('on', outside); btn.style.color = outside ? 'var(--warn)' : ''; }
-
-  // Lock slice and show persistent warning
-  const sliceBtn = document.getElementById('sliceBtn');
   const warn = document.getElementById('buildVolumeWarn');
   if (outside) {
-    if (sliceBtn) { sliceBtn.disabled = true; sliceBtn.title = 'Model exceeds 256×256×256 build volume — cannot slice'; }
+    document.getElementById('sliceBtn').disabled = true;
     if (warn) warn.style.display = 'flex';
-    setStatus(`⚠ Model is ${sz.x.toFixed(0)}×${sz.y.toFixed(0)}×${sz.z.toFixed(0)} mm — exceeds 256×256×256 build volume. Cannot slice.`, 'warn');
+    setStatus(`⚠ ${sz.x.toFixed(0)}×${sz.y.toFixed(0)}×${sz.z.toFixed(0)} mm — exceeds 256³ build volume`, 'warn');
   } else {
-    if (sliceBtn && S.modelLoaded) { sliceBtn.disabled = false; sliceBtn.title = ''; }
+    if (S.modelLoaded) document.getElementById('sliceBtn').disabled = false;
     if (warn) warn.style.display = 'none';
   }
 }
 
-// ════════════════════════════════════════════════
-// G-CODE PARSER — Color-coded by type
-// ════════════════════════════════════════════════
-function parseGCode(txt) {
-  const typeSegs = {}; // type → [x1,y1,z1, x2,y2,z2, ...]
-  let cx=0, cy=0, cz=0, ce=0;
-  let curType = 'TRAVEL';
-  let layerCount = 0;
-
-  for (const rawLine of txt.split(/\r?\n/)) {
-    const si = rawLine.indexOf(';');
-    const code = si>=0 ? rawLine.slice(0,si).trim() : rawLine.trim();
-    const cmt  = si>=0 ? rawLine.slice(si+1).trim() : '';
-
-    if (cmt.startsWith('TYPE:')) {
-      const t = cmt.slice(5).trim();
-      // Normalize Cura type names
-      if (t==='WALL-OUTER') curType='WALL-OUTER';
-      else if (t==='WALL-INNER') curType='WALL-INNER';
-      else if (t==='FILL') curType='FILL';
-      else if (t==='SKIN'||t==='TOP/BOTTOM'||t==='TOP SURFACE'||t==='BOTTOM SURFACE') curType='SKIN';
-      else if (t.includes('SUPPORT')) curType='SUPPORT';
-      else if (t==='BRIDGE') curType='BRIDGE';
-      else if (t==='SKIRT'||t==='BRIM') curType='SKIRT';
-      else curType='TRAVEL';
-      continue;
-    }
-    if (cmt.startsWith('LAYER:') || cmt.startsWith('LAYER_COUNT')) { if(cmt.startsWith('LAYER:')) layerCount++; continue; }
-
-    const uc = code.toUpperCase();
-    if (!uc.startsWith('G0') && !uc.startsWith('G1')) continue;
-    const px=cx, py=cy, pz=cz, pe=ce;
-    for (const tok of (code.match(/[A-Za-z][-+]?\d*\.?\d+/g)||[])) {
-      const a=tok[0].toUpperCase(), v=parseFloat(tok.slice(1));
-      if(a==='X') cx=v; else if(a==='Y') cy=v; else if(a==='Z') cz=v; else if(a==='E') ce=v;
-    }
-    if (curType==='TRAVEL' || ce <= pe+1e-7) continue; // skip travel and non-extrusion
-    if (!typeSegs[curType]) typeSegs[curType] = [];
-    // G-code(X,Y,Z) → Three.js(X,Z,Y) where Z is up in gcode, Y is up in three
-    typeSegs[curType].push(px, pz, py,  cx, cz, cy);
-  }
-  return { typeSegs, layerCount };
-}
-
+// ══════════════════════════════════════════════
+// TOOLPATH DISPLAY
+// ══════════════════════════════════════════════
 function buildToolpathMeshes(typeSegs) {
   clearToolpath();
   toolpathGroup = new THREE.Group();
@@ -1334,13 +1139,15 @@ function buildToolpathMeshes(typeSegs) {
   TOOLPATH_TYPES.forEach(t => typeMap[t.id] = t);
 
   for (const [type, pts] of Object.entries(typeSegs)) {
-    if (!pts.length) continue;
+    if (!pts || !pts.length) continue;
     const info = typeMap[type] || {color:'#ffffff'};
+    const arr = pts instanceof Float32Array ? pts : new Float32Array(pts);
     const geo = new THREE.BufferGeometry();
-    geo.setAttribute('position', new THREE.Float32BufferAttribute(new Float32Array(pts), 3));
+    geo.setAttribute('position', new THREE.BufferAttribute(arr, 3));
     const mat = new THREE.LineBasicMaterial({
       color: new THREE.Color(info.color),
-      transparent: true, opacity: type==='SKIRT' ? 0.5 : 0.92,
+      transparent: true,
+      opacity: type === 'SKIRT' ? 0.5 : 0.9,
       clippingPlanes: S.viewMode === 'layer' ? [clipPlane] : [],
     });
     const lines = new THREE.LineSegments(geo, mat);
@@ -1349,12 +1156,10 @@ function buildToolpathMeshes(typeSegs) {
     toolpathGroup.add(lines);
   }
   scene.add(toolpathGroup);
-  // Hide solid model when showing toolpath
   if (modelMesh) modelMesh.visible = false;
   fitView();
 }
 
-// Toggle type visibility from legend
 window.toggleType = function(id) {
   S.typeVisible[id] = !S.typeVisible[id];
   if (toolpathGroup) toolpathGroup.traverse(c => {
@@ -1363,160 +1168,311 @@ window.toggleType = function(id) {
   document.querySelectorAll(`.legend-toggle[data-type="${id}"]`).forEach(el => el.classList.toggle('on', S.typeVisible[id]));
 };
 
-// Show/hide solid mesh
-window.showSolid = function() {
-  setViewMode('solid');
-  if (modelMesh) modelMesh.visible = true;
-  if (toolpathGroup) toolpathGroup.visible = false;
-};
-
-// ════════════════════════════════════════════════
-// CURA WASM WORKER
-// ════════════════════════════════════════════════
-function meshToSTLBuffer(mesh) {
-  mesh.updateMatrixWorld(true);
-  let src = mesh.geometry.index ? mesh.geometry.toNonIndexed() : mesh.geometry.clone();
-  src.applyMatrix4(mesh.matrixWorld);
-  const pos = src.getAttribute('position');
-  const nrm = src.getAttribute('normal');
-  const tc = Math.floor(pos.count/3);
-  const buf = new ArrayBuffer(84 + tc*50);
-  const dv = new DataView(buf);
-  for (let i=0;i<80;i++) dv.setUint8(i,0);
-  dv.setUint32(80, tc, true);
-  const a=new THREE.Vector3(), b=new THREE.Vector3(), c2=new THREE.Vector3(), n=new THREE.Vector3();
-  let off=84;
-  for (let i=0;i<pos.count;i+=3) {
-    if(nrm) n.set(nrm.getX(i),nrm.getY(i),nrm.getZ(i)).normalize();
-    else { a.fromBufferAttribute(pos,i); b.fromBufferAttribute(pos,i+1); c2.fromBufferAttribute(pos,i+2); n.subVectors(c2,b).cross(a.clone().sub(b)).normalize(); }
-    dv.setFloat32(off,n.x,true); dv.setFloat32(off+4,n.y,true); dv.setFloat32(off+8,n.z,true);
-    for(let v=0;v<3;v++){const idx=i+v; dv.setFloat32(off+12+v*12,pos.getX(idx),true); dv.setFloat32(off+12+v*12+4,pos.getY(idx),true); dv.setFloat32(off+12+v*12+8,pos.getZ(idx),true);}
-    dv.setUint16(off+48,0,true); off+=50;
-  }
-  src.dispose();
-  return buf;
-}
-
-function buildWorker() {
-  const code = `
-// cura-wasm checks for 'window' internally — polyfill it for Worker context
-if (typeof window === 'undefined') self.window = self;
-
-import { CuraWASM } from 'https://esm.sh/cura-wasm?bundle';
-import { resolveDefinition } from 'https://esm.sh/cura-wasm-definitions?bundle';
-let sl=null;
-self.onmessage=async({data})=>{
-  if(data.type!=='slice')return;
-  const {settings,machine,stl}=data;
-  try{
-    if(sl){try{sl.dispose()}catch{}} sl=null;
-    sl=new CuraWASM({
-      definition:resolveDefinition('ultimaker2'),
-      overrides:[
-        {key:'machine_width',value:machine.w},{key:'machine_depth',value:machine.d},{key:'machine_height',value:machine.h},
-        {key:'layer_height',value:settings.lh},{key:'layer_height_0',value:Math.max(settings.lh,0.2)},
-        {key:'infill_sparse_density',value:settings.infill},
-        {key:'top_layers',value:settings.top},{key:'bottom_layers',value:settings.bot},
-        {key:'wall_line_count',value:settings.walls},
-        {key:'infill_pattern',value:settings.pattern},
-        {key:'support_enable',value:settings.support},
-        {scope:'e0',key:'material_diameter',value:1.75},
-        {scope:'e0',key:'speed_print',value:150},{scope:'e0',key:'speed_infill',value:200},
-        {scope:'e0',key:'speed_wall',value:100},{scope:'e0',key:'speed_topbottom',value:80},
-        {scope:'e0',key:'material_print_temperature',value:220},{scope:'e0',key:'material_bed_temperature',value:60},
-        {scope:'e0',key:'skirt_line_count',value:1},
-      ],
-      transfer:true,verbose:false
-    });
-    sl.on('progress',p=>self.postMessage({type:'progress',p}));
-    const r=await sl.slice(stl,'stl');
-    let gc='';
-    if(r.gcode instanceof ArrayBuffer) gc=new TextDecoder().decode(r.gcode);
-    else if(ArrayBuffer.isView(r.gcode)) gc=new TextDecoder().decode(r.gcode);
-    else if(typeof r.gcode==='string') gc=r.gcode;
-    self.postMessage({type:'done',gcode:gc,meta:r.metadata||{}});
-    try{sl.dispose()}catch{} sl=null;
-  }catch(e){
-    self.postMessage({type:'error',msg:e?.message||String(e)});
-    try{sl?.dispose()}catch{} sl=null;
-  }
-};`;
-  const url = URL.createObjectURL(new Blob([code], {type:'text/javascript'}));
-  return new Worker(url, {type:'module'});
-}
-
+// ══════════════════════════════════════════════
+// IN-BROWSER GEOMETRIC SLICER
+// Replaces the broken Cura WASM worker approach.
+// Cross-sections the mesh at each layer height to generate
+// real wall contours and infill patterns — no WASM needed.
+// ══════════════════════════════════════════════
 async function runSlice() {
   if (!modelMesh || S.busy) return;
   S.busy = true;
   document.getElementById('sliceBtn').disabled = true;
   document.getElementById('sliceOver').style.display = 'flex';
-  setStatus('Preparing geometry…', 'busy'); setProgress(2);
+  document.getElementById('sliceTitle').textContent = 'Slicing model…';
+  document.getElementById('sliceSub').textContent = 'Reading geometry…';
+  setStatus('Slicing…', 'busy');
+  setProgress(5);
+
+  await tick();
 
   try {
-    const stlBuf = meshToSTLBuffer(modelMesh);
-    const worker = buildWorker();
-    const result = await new Promise((res, rej) => {
-      worker.onmessage = ({data}) => {
-        if (data.type==='progress') { const p=Math.round(data.p||0); setProgress(p); document.getElementById('progBar').style.width=p+'%'; document.getElementById('progPct').textContent=p+'%'; document.getElementById('sliceSub').textContent=`Slicing… ${p}%`; }
-        else if (data.type==='done') res(data);
-        else if (data.type==='error') rej(new Error(data.msg));
-      };
-      worker.onerror = e => rej(new Error(e.message||'Worker failed'));
-      worker.postMessage({type:'slice', stl:stlBuf, settings:{lh:S.lh,infill:S.infill,top:S.top,bot:S.bot,walls:S.walls,pattern:S.pattern,support:S.support}, machine:{w:256,d:256,h:256}}, [stlBuf]);
+    const result = await geometricSlice(modelMesh.geometry, {
+      lh:      S.lh,
+      infill:  S.infill,
+      pattern: S.pattern,
+      walls:   S.walls,
+      topLays: S.top,
+      botLays: S.bot,
+      support: S.support,
     });
-    worker.terminate();
 
-    setProgress(100);
-    document.getElementById('sliceSub').textContent = 'Building toolpath visualization…';
+    setProgress(90);
+    document.getElementById('sliceSub').textContent = 'Building visualization…';
+    await tick();
 
-    const {typeSegs, layerCount} = parseGCode(result.gcode);
-    buildToolpathMeshes(typeSegs);
+    buildToolpathMeshes(result.typeSegs);
     S.hasGcode = true;
-    S.totalLayers = Math.max(layerCount, S.totalLayers);
+    S.totalLayers = result.numLayers;
     S.currentLayer = S.totalLayers;
 
-    // Extract stats from gcode/meta
-    const meta = result.meta || {};
-    const timeS = meta.estimatedTime || meta.print_time || extractTime(result.gcode);
-    const vol = extractFilVol(meta, result.gcode);
-    const density = MATS[S.matIdx].d;
-    const massG = vol ? vol * density * 1000 : 0;
-    if (timeS) document.getElementById('stTime').textContent = fmtTime(timeS);
-    if (massG) { document.getElementById('stWeight').textContent = massG.toFixed(1)+'g'; document.getElementById('cvWeight').textContent = massG.toFixed(1)+' g'; }
-    updateCost(massG);
     updateLayerUI();
     setViewMode('layer');
-    setStatus('Slice complete — toolpath displayed ✓', 'good');
 
+    const mat = MATS[S.matIdx];
+    if (result.estMassG > 0) {
+      document.getElementById('cvWeight').textContent = result.estMassG.toFixed(1) + ' g';
+      document.getElementById('stWeight').textContent = result.estMassG.toFixed(1) + 'g';
+    }
+    if (result.estTimeSec > 0) {
+      const ts = fmtTime(result.estTimeSec);
+      document.getElementById('cvTime').textContent = ts;
+      document.getElementById('stTime').textContent = ts;
+    }
+    updateCost(result.estMassG);
+
+    setProgress(100);
+    setStatus(`Slice complete — ${result.numLayers} layers ✓`, 'good');
   } catch(e) {
     console.error(e);
     setStatus('Slice failed: ' + e.message, 'warn');
   }
 
   S.busy = false;
-  document.getElementById('sliceBtn').disabled = false;
+  document.getElementById('sliceBtn').disabled = !S.modelLoaded;
   document.getElementById('sliceOver').style.display = 'none';
 }
 
-function extractTime(gc) { const m=gc.match(/;TIME:(\d+)/); return m ? parseInt(m[1]) : 0; }
-function extractFilVol(meta, gc) {
-  if (meta.extrudedVolume) return meta.extrudedVolume;
-  const used = meta.filamentUsed || meta.filament_used;
-  if (used) return (Math.PI * 0.875 * 0.875 * used) / 1000;
-  const m = gc.match(/;Filament used: ([\d.]+)/);
-  if (m) return parseFloat(m[1]);
-  return 0;
-}
+function tick() { return new Promise(r => setTimeout(r, 0)); }
 function fmtTime(s) { const h=Math.floor(s/3600), m=Math.floor((s%3600)/60); return h>0?`${h}h ${m}m`:`${m}m`; }
 
-// ════════════════════════════════════════════════
+async function geometricSlice(geometry, settings) {
+  const { lh, infill, pattern, walls, topLays, botLays, support } = settings;
+
+  // Ensure non-indexed for simple per-triangle iteration
+  const geo = geometry.index ? geometry.toNonIndexed() : geometry;
+  const pos = geo.getAttribute('position');
+  const numVerts = pos.count;
+  const numTris  = Math.floor(numVerts / 3);
+
+  // Copy into flat typed array for fast access
+  const pd = new Float32Array(numVerts * 3);
+  for (let i = 0; i < numVerts; i++) {
+    pd[i*3]   = pos.getX(i);
+    pd[i*3+1] = pos.getY(i);
+    pd[i*3+2] = pos.getZ(i);
+  }
+
+  // Bounding box
+  let minX=pd[0],maxX=pd[0], minY=pd[1],maxY=pd[1], minZ=pd[2],maxZ=pd[2];
+  for (let i=1; i<numVerts; i++) {
+    const x=pd[i*3],y=pd[i*3+1],z=pd[i*3+2];
+    if(x<minX)minX=x; if(x>maxX)maxX=x;
+    if(y<minY)minY=y; if(y>maxY)maxY=y;
+    if(z<minZ)minZ=z; if(z>maxZ)maxZ=z;
+  }
+
+  const modelH   = maxY - minY;
+  const numLayers = Math.max(1, Math.ceil(modelH / lh));
+
+  // Per-triangle Y extent for fast layer culling
+  const tyMin = new Float32Array(numTris);
+  const tyMax = new Float32Array(numTris);
+  for (let t=0; t<numTris; t++) {
+    const b = t*9;
+    const y0=pd[b+1], y1=pd[b+4], y2=pd[b+7];
+    tyMin[t] = Math.min(y0,y1,y2);
+    tyMax[t] = Math.max(y0,y1,y2);
+  }
+
+  // Output segment arrays per type
+  const wallOuter=[], wallInner=[], fill=[], skin=[], skirt=[], supportSegs=[];
+
+  // Skirt: box around part base
+  const SKM=4, SY=minY+lh*0.5;
+  skirt.push(
+    minX-SKM,SY,minZ-SKM, maxX+SKM,SY,minZ-SKM,
+    maxX+SKM,SY,minZ-SKM, maxX+SKM,SY,maxZ+SKM,
+    maxX+SKM,SY,maxZ+SKM, minX-SKM,SY,maxZ+SKM,
+    minX-SKM,SY,maxZ+SKM, minX-SKM,SY,minZ-SKM
+  );
+
+  // Infill spacing based on density (line width ~0.4mm)
+  const baseSpacing = Math.max(0.5, 40 / Math.max(1, infill));
+
+  // Slice in async chunks to keep UI responsive
+  const CHUNK = 10;
+  for (let li=0; li<numLayers; li+=CHUNK) {
+    await tick();
+    const pct = 10 + Math.round((li/numLayers)*75);
+    setProgress(pct);
+    document.getElementById('sliceSub').textContent = `Slicing layer ${li} / ${numLayers}…`;
+
+    for (let lc=li; lc<Math.min(li+CHUNK, numLayers); lc++) {
+      const y = minY + (lc + 0.5) * lh;
+
+      // Cross-section: find all triangle-plane intersections
+      const segs = [];
+      for (let t=0; t<numTris; t++) {
+        if (tyMin[t] > y || tyMax[t] < y) continue; // fast cull
+        const b = t*9;
+        // edge pairs: (0→1), (1→2), (2→0)
+        const pts=[];
+        for (let e=0; e<3; e++) {
+          const ia=e*3, ib=((e+1)%3)*3;
+          const ya=pd[b+ia+1], yb=pd[b+ib+1];
+          if (Math.abs(yb-ya)<1e-9) continue;
+          if (!((ya<=y && yb>y)||(ya>y && yb<=y))) continue;
+          const t_=(y-ya)/(yb-ya);
+          pts.push(
+            pd[b+ia]   + t_*(pd[b+ib]   - pd[b+ia]),
+            y,
+            pd[b+ia+2] + t_*(pd[b+ib+2] - pd[b+ia+2])
+          );
+        }
+        if (pts.length===6) { segs.push(pts[0],pts[1],pts[2],pts[3],pts[4],pts[5]); }
+      }
+      if (!segs.length) continue;
+
+      // Compute layer bounding box for infill
+      let lxMin=Infinity,lxMax=-Infinity,lzMin=Infinity,lzMax=-Infinity;
+      for (let i=0; i<segs.length; i+=6) {
+        lxMin=Math.min(lxMin,segs[i],segs[i+3]);
+        lxMax=Math.max(lxMax,segs[i],segs[i+3]);
+        lzMin=Math.min(lzMin,segs[i+2],segs[i+5]);
+        lzMax=Math.max(lzMax,segs[i+2],segs[i+5]);
+      }
+
+      const isBot = lc < botLays;
+      const isTop = lc >= numLayers - topLays;
+
+      if (isBot || isTop) {
+        // Skin: dense lines + wall contour
+        skin.push(...segs);
+        const sp = lh * 2;
+        if (lc % 2 === 0) {
+          for (let x=lxMin; x<=lxMax; x+=sp) skin.push(x,y,lzMin, x,y,lzMax);
+        } else {
+          for (let z=lzMin; z<=lzMax; z+=sp) skin.push(lxMin,y,z, lxMax,y,z);
+        }
+      } else {
+        // Outer wall: actual cross-section
+        wallOuter.push(...segs);
+
+        // Inner walls: approximate by offsetting bounding lines inward
+        if (walls >= 2) {
+          const wo = 0.4 * walls;
+          wallInner.push(
+            lxMin+wo,y,lzMin+wo, lxMax-wo,y,lzMin+wo,
+            lxMax-wo,y,lzMin+wo, lxMax-wo,y,lzMax-wo,
+            lxMax-wo,y,lzMax-wo, lxMin+wo,y,lzMax-wo,
+            lxMin+wo,y,lzMax-wo, lxMin+wo,y,lzMin+wo
+          );
+        }
+
+        // Infill
+        generateInfillSegs(fill, pattern, y, lxMin, lxMax, lzMin, lzMax, baseSpacing, lc);
+      }
+
+      // Support: simple grid below overhangs (approximated as floor-to-bottom lines)
+      if (support && lc < numLayers * 0.4) {
+        const supSpacing = baseSpacing * 2;
+        for (let x=lxMin; x<=lxMax; x+=supSpacing*3) {
+          supportSegs.push(x, minY, lzMin+supSpacing,  x, y, lzMin+supSpacing);
+        }
+      }
+    }
+  }
+
+  // Estimates
+  const volCm3 = calcVol(geo);
+  const mat = MATS[S.matIdx];
+  const fillFac = Math.min(1, (botLays+topLays)*lh/Math.max(modelH,0.1) + (1-(botLays+topLays)*lh/Math.max(modelH,0.1))*(infill/100)*0.85 + 0.05);
+  const estMassG = volCm3 * fillFac * mat.d * 1000;
+  const perimMm  = 2*(maxX-minX+maxZ-minZ);
+  const estTimeSec = Math.max(60, (perimMm*walls + (maxX-minX)*(maxZ-minZ)*infill/100*0.1) / 150 * numLayers / 3600 * 3600 + numLayers * 1.5);
+
+  return {
+    typeSegs: {
+      'WALL-OUTER': wallOuter,
+      'WALL-INNER': wallInner,
+      'FILL':       fill,
+      'SKIN':       skin,
+      'SKIRT':      skirt,
+      'SUPPORT':    supportSegs,
+    },
+    numLayers,
+    estMassG,
+    estTimeSec,
+  };
+}
+
+function generateInfillSegs(out, pattern, y, x0, x1, z0, z1, spacing, layerIdx) {
+  const alt = layerIdx % 2 === 0;
+  switch(pattern) {
+    case 'gyroid': {
+      const freq = spacing * 0.8, amp = spacing * 0.4, step = spacing * 0.6;
+      for (let x=x0; x<=x1; x+=step) {
+        const zOff = Math.sin(x/freq) * amp;
+        out.push(x, y, Math.max(z0,z0+zOff),  x, y, Math.min(z1,z1+zOff));
+      }
+      for (let z=z0; z<=z1; z+=step) {
+        const xOff = Math.sin(z/freq) * amp;
+        out.push(Math.max(x0,x0+xOff), y, z,  Math.min(x1,x1+xOff), y, z);
+      }
+      break;
+    }
+    case 'honeycomb': {
+      const hw = spacing;
+      let x = x0;
+      while (x <= x1) {
+        let z = z0; let flip = layerIdx % 2 === 0;
+        while (z <= z1 - hw) {
+          const mid = z + hw*0.5, xOff = flip ? hw*0.4 : 0;
+          out.push(x, y, z,     x+xOff, y, mid);
+          out.push(x+xOff, y, mid, x, y, z+hw);
+          z += hw; flip = !flip;
+        }
+        x += spacing;
+      }
+      break;
+    }
+    case 'triangles': {
+      for (let x=x0; x<=x1; x+=spacing) out.push(x,y,z0, x,y,z1);
+      for (let z=z0; z<=z1; z+=spacing*1.73) {
+        out.push(x0,y,z, x1,y,z+spacing*0.87);
+        out.push(x0,y,z+spacing*0.87, x1,y,z);
+      }
+      break;
+    }
+    case 'lightning': {
+      // Sparse branching approximation
+      const sp2 = spacing * 2.5;
+      for (let x=x0; x<=x1; x+=sp2) {
+        for (let z=z0; z<=z1; z+=sp2) {
+          const ex = Math.min(x1, x+sp2*(0.4+Math.random()*0.6));
+          const ez = Math.min(z1, z+sp2*(0.4+Math.random()*0.6));
+          out.push(x,y,z, ex,y,ez);
+        }
+      }
+      break;
+    }
+    case 'lines': {
+      if (alt) { for (let x=x0; x<=x1; x+=spacing) out.push(x,y,z0, x,y,z1); }
+      else      { for (let z=z0; z<=z1; z+=spacing) out.push(x0,y,z, x1,y,z); }
+      break;
+    }
+    case 'grid':
+    default: {
+      for (let x=x0; x<=x1; x+=spacing) out.push(x,y,z0, x,y,z1);
+      for (let z=z0; z<=z1; z+=spacing) out.push(x0,y,z, x1,y,z);
+      break;
+    }
+  }
+}
+
+// ══════════════════════════════════════════════
 // COST ESTIMATION
-// ════════════════════════════════════════════════
+// ══════════════════════════════════════════════
 function calcVol(geo) {
   const pos = geo.getAttribute('position');
-  let vol=0; const a=new THREE.Vector3(), b=new THREE.Vector3(), c=new THREE.Vector3();
-  for(let i=0;i<pos.count;i+=3){ a.fromBufferAttribute(pos,i); b.fromBufferAttribute(pos,i+1); c.fromBufferAttribute(pos,i+2); vol+=a.dot(b.clone().cross(c))/6; }
-  return Math.abs(vol)/1000; // cm³
+  let vol=0;
+  const a=new THREE.Vector3(), b=new THREE.Vector3(), c=new THREE.Vector3();
+  for(let i=0;i<pos.count;i+=3){
+    a.fromBufferAttribute(pos,i); b.fromBufferAttribute(pos,i+1); c.fromBufferAttribute(pos,i+2);
+    vol += a.dot(b.clone().cross(c)) / 6;
+  }
+  return Math.abs(vol) / 1000; // cm³
 }
 
 function updateCost(massGOverride) {
@@ -1525,13 +1481,13 @@ function updateCost(massGOverride) {
   let massG = massGOverride;
   if (!massG && primaryGeo) {
     const volCm3 = calcVol(primaryGeo);
-    const solidFrac = Math.min(1, ((S.top + S.bot) * S.lh) / Math.max((modelBBox.max.y - modelBBox.min.y), 0.01));
-    const fillFac = solidFrac + (1 - solidFrac) * (S.infill/100) * 0.85 + 0.08;
-    massG = volCm3 * fillFac * mat.d * 1000; // g
+    const modelH = modelBBox.max.y - modelBBox.min.y || 1;
+    const solidFrac = Math.min(1, (S.top + S.bot) * S.lh / modelH);
+    const fillFac = solidFrac + (1-solidFrac) * (S.infill/100) * 0.85 + 0.08;
+    massG = volCm3 * fillFac * mat.d * 1000;
   }
   const massKg = (massG||0) / 1000;
   const matCost = massKg * mat.p;
-  const modelH = (modelBBox.max.y - modelBBox.min.y);
   const sz = modelBBox.getSize(new THREE.Vector3());
   const areaLayers = (sz.x * sz.z) / 100;
   const perimCm = 2*(sz.x+sz.z)/10;
@@ -1559,35 +1515,35 @@ function updateCost(massGOverride) {
 
 window.adjQty = function(d) { S.qty = Math.max(1, S.qty+d); updateCost(); };
 
-// ════════════════════════════════════════════════
-// STATUS
-// ════════════════════════════════════════════════
+// ══════════════════════════════════════════════
+// STATUS / PROGRESS
+// ══════════════════════════════════════════════
 function setStatus(txt, type='') {
   document.getElementById('sText').textContent = txt;
-  const dot = document.getElementById('sDot');
-  dot.className = 'status-dot' + (type ? ' '+type : '');
+  document.getElementById('sDot').className = 'status-dot' + (type ? ' '+type : '');
 }
 function setProgress(p) {
-  document.getElementById('botProg').style.width = Math.min(100,p)+'%';
-  document.getElementById('progBar').style.width = Math.min(100,p)+'%';
-  document.getElementById('progPct').textContent = Math.round(p)+'%';
+  const pct = Math.min(100, Math.round(p));
+  document.getElementById('botProg').style.width = pct+'%';
+  document.getElementById('progBar').style.width = pct+'%';
+  document.getElementById('progPct').textContent = pct+'%';
 }
 
-// ════════════════════════════════════════════════
+// ══════════════════════════════════════════════
 // UI BUILDERS
-// ════════════════════════════════════════════════
+// ══════════════════════════════════════════════
 function buildMaterialSelect() {
   const sel = document.getElementById('selMat');
   const fams = [...new Set(MATS.map(m=>m.fam))];
   sel.innerHTML = '';
-  let current = null;
   fams.forEach(fam => {
     const og = document.createElement('optgroup');
     og.label = '── ' + fam + ' ──';
     MATS.forEach((m,i) => {
       if (m.fam !== fam) return;
       const op = document.createElement('option');
-      op.value = i; op.textContent = `${m.n} — $${m.p}/kg`;
+      op.value = i;
+      op.textContent = m.n; // FIX: no price shown
       og.appendChild(op);
     });
     sel.appendChild(og);
@@ -1596,7 +1552,6 @@ function buildMaterialSelect() {
     S.matIdx = parseInt(sel.value);
     buildColorGrid();
     updateCost();
-    document.getElementById('sVol') && updateCost();
   });
 }
 
@@ -1617,12 +1572,14 @@ function buildColorGrid() {
       if (modelMesh) {
         applyVertexColor(modelMesh.geometry, new THREE.Color(hex));
         modelMesh.geometry.getAttribute('color').needsUpdate = true;
-        modelMesh.material.color.set(hex);
       }
     });
     grid.appendChild(d);
   });
-  if (mat.cl.length) { S.colorHex = mat.cl[0]; document.getElementById('colorName').textContent = mat.cl[0]; }
+  if (mat.cl.length) {
+    S.colorHex = mat.cl[0];
+    document.getElementById('colorName').textContent = mat.cl[0];
+  }
 }
 
 function buildLHGrid() {
@@ -1636,7 +1593,11 @@ function buildLHGrid() {
       document.querySelectorAll('#lhGrid .lh-btn').forEach(x=>x.classList.remove('on'));
       b.classList.add('on');
       document.getElementById('lhDisp').textContent = v+' mm';
-      if (S.modelLoaded) { S.totalLayers = Math.ceil((modelBBox.max.y - modelBBox.min.y)/v); S.currentLayer = S.totalLayers; updateLayerUI(); }
+      if (S.modelLoaded) {
+        S.totalLayers = Math.ceil((modelBBox.max.y - modelBBox.min.y) / v);
+        S.currentLayer = S.totalLayers;
+        updateLayerUI();
+      }
       updateCost();
     });
     grid.appendChild(b);
@@ -1664,73 +1625,65 @@ function buildLegend() {
   TOOLPATH_TYPES.forEach(({id, label, color}) => {
     const row = document.createElement('div');
     row.className = 'legend-row';
-    row.innerHTML = `<div class="legend-dot" style="background:${color}"></div><span>${label}</span><div class="legend-toggle on" data-type="${id}" title="Toggle visibility" onclick="toggleType('${id}')"></div>`;
+    row.innerHTML = `<div class="legend-dot" style="background:${color}"></div><span>${label}</span><div class="legend-toggle on" data-type="${id}" onclick="toggleType('${id}')"></div>`;
     wrap.appendChild(row);
   });
 }
 
-// Stepper adjustments
 window.adj = function(k, d) {
-  if (k==='walls') { S.walls = Math.max(1, Math.min(8, S.walls+d)); document.getElementById('wVal').textContent=S.walls; document.getElementById('wDisp').textContent=S.walls; }
-  if (k==='top')   { S.top   = Math.max(1, Math.min(16,S.top+d));   document.getElementById('tVal').textContent=S.top;   document.getElementById('tDisp').textContent=S.top; }
-  if (k==='bot')   { S.bot   = Math.max(1, Math.min(16,S.bot+d));   document.getElementById('bVal').textContent=S.bot;   document.getElementById('bDisp').textContent=S.bot; }
+  if (k==='walls') { S.walls=Math.max(1,Math.min(8,S.walls+d)); document.getElementById('wVal').textContent=S.walls; document.getElementById('wDisp').textContent=S.walls; }
+  if (k==='top')   { S.top=Math.max(1,Math.min(16,S.top+d));   document.getElementById('tVal').textContent=S.top;   document.getElementById('tDisp').textContent=S.top; }
+  if (k==='bot')   { S.bot=Math.max(1,Math.min(16,S.bot+d));   document.getElementById('bVal').textContent=S.bot;   document.getElementById('bDisp').textContent=S.bot; }
   updateCost();
 };
 
-// Infill slider
 document.getElementById('ifSlider').addEventListener('input', e => {
   S.infill = parseInt(e.target.value);
   document.getElementById('ifDisp').textContent = S.infill + '%';
   updateCost();
 });
 
-// Support toggle
 document.getElementById('suppToggle').addEventListener('change', e => {
   S.support = e.target.checked;
-  const en = !e.target.checked;
-  ['suppTypeRow','suppIntRow'].forEach(id => { document.getElementById(id).style.opacity = en?'.45':'1'; document.getElementById(id).style.pointerEvents = en?'none':'auto'; });
+  ['suppTypeRow','suppIntRow'].forEach(id => {
+    document.getElementById(id).style.opacity = e.target.checked ? '1' : '.45';
+    document.getElementById(id).style.pointerEvents = e.target.checked ? 'auto' : 'none';
+  });
 });
 
-// View tabs
 document.querySelectorAll('#viewTabs .vtab').forEach(b => b.addEventListener('click', () => setViewMode(b.dataset.mode)));
-
-// Slice button
 document.getElementById('sliceBtn').addEventListener('click', runSlice);
 
-// File inputs
 document.getElementById('fileInput').addEventListener('change', e => { if(e.target.files[0]) handleFile(e.target.files[0]); e.target.value=''; });
 document.getElementById('newFileInput').addEventListener('change', e => { if(e.target.files[0]) handleFile(e.target.files[0]); e.target.value=''; });
 
-// Drag & drop
 const vpEl2 = document.getElementById('vp');
 const dropEl = document.getElementById('dropOver');
 vpEl2.addEventListener('dragover', e => { e.preventDefault(); dropEl.classList.add('dragover'); });
 vpEl2.addEventListener('dragleave', e => { if(!vpEl2.contains(e.relatedTarget)) dropEl.classList.remove('dragover'); });
 vpEl2.addEventListener('drop', e => { e.preventDefault(); dropEl.classList.remove('dragover'); if(e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]); });
-dropEl.addEventListener('click', e => { if(e.target.tagName!=='BUTTON'&&e.target.tagName!=='INPUT') document.getElementById('fileInput').click(); });
+dropEl.addEventListener('click', e => { if(e.target.tagName!=='BUTTON') document.getElementById('fileInput').click(); });
 
-// Accordion toggle
 window.tog = function(header) {
   const body = header.nextElementSibling;
   const caret = header.querySelector('.acc-caret');
-  const open = body.classList.toggle('open');
-  if (caret) caret.style.transform = open ? 'rotate(0deg)' : 'rotate(-90deg)';
+  body.classList.toggle('open');
+  if (caret) caret.style.transform = body.classList.contains('open') ? 'rotate(0deg)' : 'rotate(-90deg)';
 };
 
-// ════════════════════════════════════════════════
+// ══════════════════════════════════════════════
 // BOOT
-// ════════════════════════════════════════════════
+// ══════════════════════════════════════════════
 buildMaterialSelect();
 buildColorGrid();
 buildLHGrid();
 buildPatGrid();
 buildLegend();
 setStatus('Ready — drag & drop or upload a 3D file to begin');
-
-// Initial hint
 document.getElementById('layerNum').textContent = '—';
 document.getElementById('layerOf').textContent = '';
 document.getElementById('layerZ').textContent = 'Load a model first';
+
 </script>
 </body>
 </html>
